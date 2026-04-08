@@ -22,7 +22,7 @@
 
 ## Entity Quality
 
-All sensors and registers have been carefully defined with correct and complete HA metadata: `unique_id`, `device_class`, `state_class`, `unit_of_measurement`, `scale`, `precision` and `scan_interval` are individually set for each entity. This ensures that long-term statistics, energy dashboard integration and history graphs work out of the box without manual adjustments.
+All sensors and registers have been carefully defined with correct and complete HA metadata: `unique_id`, `device_class`, `state_class`, `unit_of_measurement`, `scale`, `precision` and `scan_interval` are carefully set for each entity to best match its purpose. This ensures that long-term statistics, energy dashboard integration and history graphs work out of the box without manual adjustments.
 
 ## Requirements
 

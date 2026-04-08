@@ -155,7 +155,6 @@ modbus:
         device_class: volume_flow_rate
         state_class: measurement
         
-      # --- bis hier hinzugefügt durch ChatGPT
       
       # --- Register 00201-00225: Pump Status --- alle Register sind read-only (RO)
       
@@ -212,7 +211,7 @@ modbus:
         slave: 1
         scan_interval: 30
       
-      # --- Register 00207: Bearing service (Bitfeld) - hinzugefügt auf Hinweis von ChatGPT
+      # --- Register 00207: Bearing service (Bitfeld)
       - name: "MAGNA3 Bearing Service (Raw)"
         unique_id: magna3_r00207_bearing_service_raw
         address: 206  # Register 00207
@@ -223,7 +222,7 @@ modbus:
         # device_class: (weggelassen)  # Bitfeld/Status, keine passende HA-Device-Class
         # state_class: (weggelassen)   # kein Messwert im HA-Sinn, Roh-Bitfeld
       
-# --- Register 00208: DriveState (Enum) - hinzugefügt auf Hinweis von ChatGPT
+# --- Register 00208: DriveState (Enum)
       - name: "MAGNA3 Drive State Code"
         unique_id: magna3_r00208_drive_state
         address: 207  # Register 00208
@@ -270,7 +269,7 @@ modbus:
         data_type: uint16
         unit_of_measurement: "Hz"
         device_class: frequency
-        # state_class: measurement # nicht gesetzt, weil kein statistischer Wert (added by suggestion of ChatGPT war Unsinn)
+        # state_class: measurement # nicht gesetzt, weil kein statistischer Wert
         scale: 0.1
         precision: 1
         slave: 1
@@ -324,7 +323,6 @@ modbus:
         slave: 1
         scan_interval: 3600
       
-  # added by Gemini 
       
       - name: "MAGNA3 Flow Estimation Status"
         unique_id: magna3_r00221_flow_estimation_state
@@ -355,7 +353,7 @@ modbus:
         input_type: input
         data_type: uint16
         unit_of_measurement: "s"     # Wichtig für duration
-        device_class: duration       # <--- HIER ERGÄNZT auf Nachfrage
+        device_class: duration
         state_class: measurement
         scale: 0.1
         precision: 1
@@ -373,7 +371,7 @@ modbus:
         # Kein Device Class, da Binär-Status (0/1)
         # 0: Inverse (Standard), 1: Direct
 
-      - name: "MAGNA3 Steuerquelle Code" # hinzugefügt auf Tip von Gemini 3
+      - name: "MAGNA3 Steuerquelle Code"
         unique_id: magna3_r00225_control_source
         address: 224  # Register 00225
         input_type: input
@@ -381,7 +379,6 @@ modbus:
         slave: 1
         scan_interval: 30
         # Werte: 1=Display, 2=Bus, 3=GO App, 4=Digtal Input, 5=Off Button
-  # end of "added by Gemini" 
 
       #
       # --- Register 00301-00365: Pump Data (Messwerte) --- alle Register sind read-only (RO)
@@ -560,18 +557,18 @@ modbus:
         input_type: input
         data_type: uint32
         unit_of_measurement: "h"
-        # device_class: duration # Entfernt auf Anraten von Claude Opus 4.6, da inkompatibel laut HA-Doku
+        # device_class: duration # nicht kompatibel mit state_class: total_increasing laut HA-Doku
         state_class: total_increasing
         slave: 1
         scan_interval: 300
-      
+
       - name: "MAGNA3 Betriebsstunden (Gesamt)"
         unique_id: magna3_r00329_total_powered_time
         address: 328  # Register 00329-00330 (32-bit)
         input_type: input
         data_type: uint32
         unit_of_measurement: "h"
-        # device_class: duration # Entfernt auf Anraten von Claude Opus 4.6, da inkompatibel laut HA-Doku
+        # device_class: duration # nicht kompatibel mit state_class: total_increasing laut HA-Doku
         state_class: total_increasing
         slave: 1
         scan_interval: 300
@@ -638,7 +635,7 @@ modbus:
         data_type: uint16
         unit_of_measurement: "m³/h"
         state_class: measurement
-        device_class: volume_flow_rate # hinzugefügt auf Vorschlag von ChatGPT
+        device_class: volume_flow_rate
         scale: 0.1
         precision: 1
         slave: 1
@@ -805,7 +802,7 @@ template:
         device_class: problem
         icon: mdi:alert
       
-      # Bit 12: ForcedToLocal # added by suggestion of Gemini 3 - zeigt ob Fernsteuerung ausgeschaltetet und lokaler Handbetrieb eingeschaltet ist 
+      # Bit 12: ForcedToLocal - zeigt ob Fernsteuerung ausgeschaltet und lokaler Handbetrieb eingeschaltet ist
       - name: "MAGNA3 Zwang auf Handbetrieb"
         unique_id: magna3_status_forced_to_local
         state: >
@@ -966,7 +963,6 @@ template:
         state: >
           {{ states('sensor.magna3_uhrzeit_unix') | int(0) | as_datetime }}
 
-# ab hier hinzugefügt durch Gemini 
 
       - name: "MAGNA3 Durchfluss-Status Text"
         unique_id: magna3_flow_estimation_text
@@ -1001,7 +997,6 @@ template:
           {% else %}mdi:help-circle
           {% endif %}
 
-# ab hier hinzugefügt durch ChatGPT 
 
       - name: "MAGNA3 Months To Bearing Service"
         unique_id: magna3_months_to_bearing_service
@@ -1038,7 +1033,6 @@ template:
         # device_class: (weggelassen)  # Textstatus
         # state_class: (weggelassen)   # Textstatus
 
-# end of hinzugefügt durch ChatGPT
 
       # --- Durchfluss Sensor zeigt nativ m³/h an statt L/h. Z.B. die Lambda WP aber L/h ---
       # --- Dieser Template-Sensor spiegelt den Original-Modbus-Sensor in L/h zur besseren Vergleichbarkeit in Kurven ---
