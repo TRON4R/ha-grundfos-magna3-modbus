@@ -45,6 +45,8 @@ Bei der Definition aller Sensoren und Register wurde besonderer Wert auf korrekt
    ```
 4. Home Assistant neu starten
 
+> **Englische Version:** Alle Entitätsnamen, Automationstexte und Kommentare auf Englisch: `grundfos_magna3.yaml` und `dashboard_card.yaml`.
+
 ## Dashboard-Karte (optional)
 
 <p align="center">

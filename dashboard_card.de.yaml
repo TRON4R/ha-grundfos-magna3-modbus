@@ -1,12 +1,12 @@
 type: custom:vertical-stack-in-card
 cards:
   - type: heading
-    heading: Grundfos MAGNA3 Circulation Pump
+    heading: Grundfos MAGNA3 Heizkreispumpe
     heading_style: title
     icon: mdi:pump
     badges:
       - type: entity
-        entity: sensor.magna3_control_mode
+        entity: sensor.magna3_regelungsart
     card_mod:
       style: |
         ha-icon {
@@ -15,8 +15,8 @@ cards:
   - type: horizontal-stack
     cards:
       - type: gauge
-        entity: sensor.magna3_head_pressure
-        name: Head Pressure
+        entity: sensor.magna3_forderhohe
+        name: Förderhöhe
         unit: m
         min: 0
         max: 10
@@ -32,8 +32,8 @@ cards:
               box-shadow: none !important;
             }
       - type: gauge
-        entity: sensor.magna3_power_consumption
-        name: Power
+        entity: sensor.magna3_leistungsaufnahme
+        name: Leistung
         unit: W
         min: 0
         max: 153
@@ -49,8 +49,8 @@ cards:
               box-shadow: none !important;
             }
       - type: gauge
-        entity: sensor.magna3_speed
-        name: Speed
+        entity: sensor.magna3_drehzahl
+        name: Drehzahl
         unit: rpm
         min: 0
         max: 4530
@@ -68,8 +68,8 @@ cards:
   - type: horizontal-stack
     cards:
       - type: gauge
-        entity: sensor.magna3_flow_rate_l_h
-        name: Flow Rate
+        entity: sensor.magna3_durchfluss_l_h
+        name: Durchfluss
         unit: L/h
         min: 0
         max: 5500
@@ -85,7 +85,7 @@ cards:
               box-shadow: none !important;
             }
       - type: gauge
-        entity: sensor.magna3_actual_setpoint
+        entity: sensor.magna3_sollwert_aktuell
         unit: "%"
         min: 0
         max: 100
@@ -94,7 +94,7 @@ cards:
           yellow: 80
           red: 90
         needle: true
-        name: Actual Setpoint
+        name: Soll Regelung
         card_mod:
           style: |
             ha-card {
@@ -102,7 +102,7 @@ cards:
               box-shadow: none !important;
             }
       - type: gauge
-        entity: sensor.magna3_pump_liquid_temp
+        entity: sensor.magna3_medientemperatur
         unit: °C
         min: 0
         max: 65
@@ -111,7 +111,7 @@ cards:
           yellow: 50
           red: 60
         needle: true
-        name: Liquid Temp
+        name: Wassertemperatur
         card_mod:
           style: |
             ha-card {
@@ -121,15 +121,15 @@ cards:
   - type: horizontal-stack
     cards:
       - type: custom:mushroom-template-card
-        primary: Flow Estimation ⇧
-        secondary: Estimate {{ states(entity) }}
+        primary: Durchfluss ⇧
+        secondary: Schätzung {{ states(entity) }}
         multiline_secondary: true
         icon: mdi:chart-bell-curve
-        entity: sensor.magna3_flow_estimation_state_text
+        entity: sensor.magna3_durchfluss_status_text
         tap_action:
           action: more-info
         color: |
-          {% if is_state(entity, 'Within range') %}
+          {% if is_state(entity, 'im Messbereich') %}
             green
           {% else %}
             amber
@@ -142,7 +142,7 @@ cards:
               box-shadow: none !important;
             }
       - type: gauge
-        entity: sensor.magna3_user_setpoint
+        entity: sensor.magna3_sollwert_benutzer
         unit: "%"
         min: 0
         max: 100
@@ -151,7 +151,7 @@ cards:
           yellow: 80
           red: 90
         needle: true
-        name: User Setpoint
+        name: Sollwert Benutzer
         card_mod:
           style: |
             ha-card {
@@ -159,7 +159,7 @@ cards:
               box-shadow: none !important;
             }
       - type: gauge
-        entity: sensor.magna3_actual_setpoint_m
+        entity: sensor.magna3_sollwert_meter
         unit: m
         min: 0
         max: 10
@@ -168,7 +168,7 @@ cards:
           yellow: 6
           red: 8
         needle: true
-        name: User Setpoint
+        name: Sollwert Benutzer
         card_mod:
           style: |
             ha-card {
@@ -176,14 +176,14 @@ cards:
               box-shadow: none !important;
             }
   - type: entities
-    title: Settings
+    title: Einstellungen
     entities:
-      - entity: input_number.magna3_setpoint_percent
-        name: Setpoint (%)
-      - entity: input_number.magna3_setpoint_m
-        name: Setpoint (m)
-      - entity: sensor.magna3_control_source
-      - entity: binary_sensor.magna3_remote_mode
+      - entity: input_number.magna3_sollwert_prozent
+        name: Sollwert (%)
+      - entity: input_number.magna3_sollwert_meter
+        name: Sollwert (m)
+      - entity: sensor.magna3_steuerquelle
+      - entity: binary_sensor.magna3_remote_modus
   - type: horizontal-stack
     cards:
       - show_name: true
@@ -202,7 +202,7 @@ cards:
       - show_name: true
         show_icon: true
         type: button
-        name: → Local
+        name: → Lokal
         icon: mdi:hand-back-right
         tap_action:
           action: perform-action
@@ -244,7 +244,7 @@ cards:
       - show_name: true
         show_icon: true
         type: button
-        name: Proportional Pressure
+        name: Proportionaldruck
         icon: mdi:gauge
         tap_action:
           action: perform-action

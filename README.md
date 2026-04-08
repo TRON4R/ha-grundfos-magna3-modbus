@@ -45,6 +45,8 @@ All sensors and registers have been carefully defined with correct and complete 
    ```
 4. Restart Home Assistant
 
+> **German version:** All entity names, automation texts and comments in German: `grundfos_magna3.de.yaml` and `dashboard_card.de.yaml`.
+
 ## Dashboard Card (optional)
 
 <p align="center">

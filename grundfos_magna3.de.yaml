@@ -1,64 +1,64 @@
 # ==============================================================================
 # GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration (v3-enhanced)
 # ==============================================================================
-# CIM 500 Modbus TCP Configuration
-# Documentation: Grundfos 98367081 05.2025
+# CIM 500 Modbus TCP Konfiguration
+# Dokumentation: Grundfos 98367081 05.2025
 #
-# YAML created in 2025 by TRON4R for MAGNA3 integration with Home Assistant
+# YAML erstellt in 2025 von TRON4R zur Anbindung der MAGNA3 in Home Assistant
 #
 # INSTALLATION:
-# 1. Copy this file to /config/packages/grundfos-magna3.yaml
-# 2. Add to configuration.yaml:
+# 1. Diese Datei nach /config/packages/grundfos-magna3.yaml kopieren
+# 2. In configuration.yaml einfügen:
 #    homeassistant:
 #      packages: !include_dir_named packages
-# 3. Adjust IP address below (line 23)
-# 4. Restart Home Assistant
+# 3. IP-Adresse unten anpassen (Zeile 23)
+# 4. Home Assistant neu starten
 #
 # CHANGELOG v3-enhanced:
-# - Replaced all deprecated service: entries with action:
-# - Fixed and added various device classes
-# - Added registers 00221 to 00225
-# - Added bit 12 to template sensor for register 00201 
-# - Various state_class corrections, fixed YAML indentation errors
+# - alle veralteten service: Einträge in den Automationen durch action: ersetzt
+# - diverse device classes korrigiert oder hinzugefügt
+# - Register 00221 bis 00225 noch hinzugefügt
+# - Bit 12 noch in Template Sensor für Register 00201 hinzugefügt 
+# - Diverse state_class Korrekturen durchgeführt, YAML-Einrückungsfehler beseitigt
 #
 # CHANGELOG v3:
-# - Added device classes to all registers (00213-00216, 00210-00211)
-# - Added state classes where missing
-# - Added register 00106 (SetMaxFlowLimit) (commented out)
-# - Added register 00316 (RemotePressure1) (commented out)
-# - Added register 00320 (RemoteTemp1) (commented out)
-# - Added PID parameters 00110-00112 (commented out with warnings)
-# - Detailed PID parameter documentation
+# - Device Classes ergänzt bei allen Registern (00213-00216, 00210-00211)
+# - State Classes ergänzt wo fehlend
+# - Register 00106 (SetMaxFlowLimit) hinzugefügt (auskommentiert)
+# - Register 00316 (RemotePressure1) hinzugefügt (auskommentiert)
+# - Register 00320 (RemoteTemp1) hinzugefügt (auskommentiert)
+# - PID-Parameter 00110-00112 hinzugefügt (auskommentiert mit Warnungen)
+# - Ausführliche Dokumentation zu PID-Parametern
 # 
 # CHANGELOG v2:
-# - Added unique IDs (magna3_rXXXXX)
-# - Fixed device classes
-# - Optimized scan intervals (30-60s instead of 5-10s)
-# - Numeric sorting by register address
-# - Binary sensors as templates (for bit evaluation)
-# - Added missing registers (MaxFlowLimit)
-# - Improved descriptions
+# - Unique IDs hinzugefügt (magna3_rXXXXX)
+# - Device Classes korrigiert
+# - Scan-Intervalle optimiert (30-60s statt 5-10s)
+# - Numerische Sortierung nach Register-Adresse
+# - Binary Sensors als Templates (für Bit-Auswertung)
+# - Fehlende Register ergänzt (MaxFlowLimit)
+# - Bessere Beschreibungen
 # ==============================================================================
 
 modbus:
   - name: Grundfos_MAGNA3
     type: tcp
-    host: 192.168.2.7  # ← CHANGE: IP address of your CIM 500
+    host: 192.168.2.7  # ← ANPASSEN: IP-Adresse Deines CIM 500
     port: 502
 
     # ==========================================================================
-    # SENSORS - Measurements (sorted by register address)
+    # SENSORS - Messwerte (nach Register-Adresse sortiert)
     # ==========================================================================
     sensors:
 
-    # --- Register 00031-00037: Software version and date (RO) --- 
+    # --- Register 00031-00037: Softwareversionsstand und -Datum - noch später manuell hinzugefügt (RO) --- 
       - name: "MAGNA3 Software Version HI (Raw)"
         unique_id: magna3_r00034_sw_version_hi
         address: 33  # Register 00034
         input_type: input
         data_type: uint16
         slave: 1
-        scan_interval: 86400  # once per day is sufficient
+        scan_interval: 86400  # 1x pro Tag reicht
 
       - name: "MAGNA3 Software Version LO (Raw)"
         unique_id: magna3_r00035_sw_version_lo
@@ -68,7 +68,7 @@ modbus:
         slave: 1
         scan_interval: 86400
 
-      - name: "MAGNA3 Software Date DayMonth (Raw)"
+      - name: "MAGNA3 Software Datum DayMonth (Raw)"
         unique_id: magna3_r00036_sw_date_dm
         address: 35  # Register 00036
         input_type: input
@@ -76,7 +76,7 @@ modbus:
         slave: 1
         scan_interval: 86400
 
-      - name: "MAGNA3 Software Date Year (Raw)"
+      - name: "MAGNA3 Software Datum Year (Raw)"
         unique_id: magna3_r00037_sw_date_year
         address: 36  # Register 00037
         input_type: input
@@ -84,7 +84,7 @@ modbus:
         slave: 1
         scan_interval: 86400
     
-    # --- Register 00101-00106: Pump Control (display only / all registers in block 00101-00112 are RW!) ---
+    # --- Register 00101-00106: Pump Control (nur Anzeige / alle Register in dem Block 00101 bis 00112 sind aber grundsätzlich RW!) ---
       
       - name: "MAGNA3 Control Register (00101 Raw)"
         unique_id: magna3_r00101_control_register_raw
@@ -93,8 +93,8 @@ modbus:
         data_type: uint16
         slave: 1
         scan_interval: 30
-        # device_class: (omitted)  # Bitfield
-        # state_class: (omitted)   # Bitfield
+        # device_class: (weggelassen)  # Bitfeld
+        # state_class: (weggelassen)   # Bitfeld
       
       - name: "MAGNA3 Control Mode Request (00102)"
         unique_id: magna3_r00102_control_mode_req
@@ -103,8 +103,8 @@ modbus:
         data_type: uint16
         slave: 1
         scan_interval: 30
-        # device_class: (omitted)  # Enum/Code
-        # state_class: (omitted)   # Enum/Code
+        # device_class: (weggelassen)  # Enum/Code
+        # state_class: (weggelassen)   # Enum/Code
       
       - name: "MAGNA3 Operation Mode Request (00103)"
         unique_id: magna3_r00103_operation_mode_req
@@ -113,8 +113,8 @@ modbus:
         data_type: uint16
         slave: 1
         scan_interval: 30
-        # device_class: (omitted)  # Enum/Code
-        # state_class: (omitted)   # Enum/Code
+        # device_class: (weggelassen)  # Enum/Code
+        # state_class: (weggelassen)   # Enum/Code
       
       - name: "MAGNA3 Setpoint Request (00104)"
         unique_id: magna3_r00104_setpoint_req
@@ -126,12 +126,12 @@ modbus:
         precision: 1
         slave: 1
         scan_interval: 30
-        # device_class: (omitted)  # Percentage values: no suitable general device_class
+        # device_class: (weggelassen)  # Prozentwerte: keine passende allgemeine device_class
         state_class: measurement
       
-      # 00105 is "RelayControl" per docs, only for "E-pumps and CUE".
-      # For MAGNA3 this is often NOT usable (returns 0 / not present).
-      # Included but commented out.
+      # 00105 ist laut Doku "RelayControl" und gilt nur für "E-pumps and CUE".
+      # Bei MAGNA3 ist das in vielen Fällen NICHT nutzbar (liefert oft 0 / nicht vorhanden).
+      # Daher mitgeliefert, aber auskommentiert wie gewünscht.
       # - name: "MAGNA3 Relay Control (00105 Raw)"
       #   unique_id: magna3_r00105_relay_control_raw
       #   address: 104  # Register 00105
@@ -139,8 +139,8 @@ modbus:
       #   data_type: uint16
       #   slave: 1
       #   scan_interval: 30
-      #   # device_class: (omitted)  # Bitfield
-      #   # state_class: (omitted)   # Bitfield
+      #   # device_class: (weggelassen)  # Bitfeld
+      #   # state_class: (weggelassen)   # Bitfeld
       
       - name: "MAGNA3 Max Flow Limit Setpoint (00106)"
         unique_id: magna3_r00106_set_max_flow_limit
@@ -156,7 +156,7 @@ modbus:
         state_class: measurement
         
       
-      # --- Register 00201-00225: Pump Status --- all registers are read-only (RO)
+      # --- Register 00201-00225: Pump Status --- alle Register sind read-only (RO)
       
       - name: "MAGNA3 Status Bits (Raw)"
         unique_id: magna3_r00201_status_bits
@@ -164,9 +164,9 @@ modbus:
         input_type: input
         slave: 1
         scan_interval: 30
-        # Used for template binary sensors
+        # Wird für Template Binary Sensors verwendet
       
-      - name: "MAGNA3 Process Feedback"
+      - name: "MAGNA3 Prozess-Rückmeldung"
         unique_id: magna3_r00202_process_feedback
         address: 201  # Register 00202
         input_type: input
@@ -178,16 +178,16 @@ modbus:
         slave: 1
         scan_interval: 30
       
-      - name: "MAGNA3 Control Mode Code"
+      - name: "MAGNA3 Regelungsart Code"
         unique_id: magna3_r00203_control_mode
         address: 202  # Register 00203
         input_type: input
         data_type: uint16
         slave: 1
         scan_interval: 30
-        # Rendered as text in template sensor
+        # Wird in Template Sensor als Text dargestellt
       
-      - name: "MAGNA3 Operation Mode Code"
+      - name: "MAGNA3 Betriebsmodus Code"
         unique_id: magna3_r00204_operation_mode
         address: 203  # Register 00204
         input_type: input
@@ -211,7 +211,7 @@ modbus:
         slave: 1
         scan_interval: 30
       
-      # --- Register 00207: Bearing service (bitfield)
+      # --- Register 00207: Bearing service (Bitfeld)
       - name: "MAGNA3 Bearing Service (Raw)"
         unique_id: magna3_r00207_bearing_service_raw
         address: 206  # Register 00207
@@ -219,8 +219,8 @@ modbus:
         data_type: uint16
         slave: 1
         scan_interval: 3600
-        # device_class: (omitted)  # Bitfield/status, no suitable HA device_class
-        # state_class: (omitted)   # not a measurement in HA terms, raw bitfield
+        # device_class: (weggelassen)  # Bitfeld/Status, keine passende HA-Device-Class
+        # state_class: (weggelassen)   # kein Messwert im HA-Sinn, Roh-Bitfeld
       
 # --- Register 00208: DriveState (Enum)
       - name: "MAGNA3 Drive State Code"
@@ -230,10 +230,10 @@ modbus:
         data_type: uint16
         slave: 1
         scan_interval: 30
-        # device_class: (omitted)  # Status-Code/Enum
-        # state_class: (omitted)   # Status-Code/Enum
+        # device_class: (weggelassen)  # Status-Code/Enum
+        # state_class: (weggelassen)   # Status-Code/Enum
       
-      - name: "MAGNA3 Feedback Sensor Unit"
+      - name: "MAGNA3 Sensor Einheit"
         unique_id: magna3_r00209_sensor_unit
         address: 208  # Register 00209
         input_type: input
@@ -242,136 +242,136 @@ modbus:
         scan_interval: 3600
         # 0=bar, 2=m, 6=m³/h, 10=°C
       
-      - name: "MAGNA3 Feedback Sensor Min"
+      - name: "MAGNA3 Sensor Minimum"
         unique_id: magna3_r00210_sensor_min
         address: 209  # Register 00210
         input_type: input
         data_type: uint16
-        # no device_class, as the unit depends on register 209
-        # no state_class: measurement, this is a minimum value
+        # kein device_class angegeben, da hier die Unit davon abhängt, was in Register 209 steht
+        # kein state_class: measurement, weil ein Mindestwert
         slave: 1
         scan_interval: 3600
       
-      - name: "MAGNA3 Feedback Sensor Max"
+      - name: "MAGNA3 Sensor Maximum"
         unique_id: magna3_r00211_sensor_max
         address: 210  # Register 00211
         input_type: input
         data_type: uint16
-        # no device_class, as the unit depends on register 209
-        # no state_class: measurement, this is a maximum value
+        # kein device_class angegeben, da hier die Unit davon abhängt, was in Register 209 steht
+        # kein state_class: measurement, weil ein Maximalwert
         slave: 1
         scan_interval: 3600
       
-      - name: "MAGNA3 Nominal Frequency"
+      - name: "MAGNA3 Nenn-Frequenz"
         unique_id: magna3_r00212_nom_frequency
         address: 211  # Register 00212
         input_type: input
         data_type: uint16
         unit_of_measurement: "Hz"
         device_class: frequency
-        # state_class: measurement # not set, not a statistical value
+        # state_class: measurement # nicht gesetzt, weil kein statistischer Wert
         scale: 0.1
         precision: 1
         slave: 1
         scan_interval: 3600
       
-      - name: "MAGNA3 Min Frequency"
+      - name: "MAGNA3 Min Frequenz"
         unique_id: magna3_r00213_min_frequency
         address: 212  # Register 00213
         input_type: input
         data_type: uint16
         unit_of_measurement: "%"
-        # state_class: measurement # not set, not a statistical value
+        # state_class: measurement # nicht gesetzt, weil weil kein statistischer Wert
         scale: 0.01
         precision: 1
         slave: 1
         scan_interval: 3600
       
-      - name: "MAGNA3 Max Frequency"
+      - name: "MAGNA3 Max Frequenz"
         unique_id: magna3_r00214_max_frequency
         address: 213  # Register 00214
         input_type: input
         data_type: uint16
         unit_of_measurement: "%"
-        # state_class: measurement # not set, not a statistical value
+        # state_class: measurement # nicht gesetzt, weil weil kein statistischer Wert
         scale: 0.01
         precision: 1
         slave: 1
         scan_interval: 3600
       
-      - name: "MAGNA3 Setpoint Range Min"
+      - name: "MAGNA3 Sollwertbereich Min"
         unique_id: magna3_r00215_setpoint_range_min
         address: 214  # Register 00215
         input_type: input
         data_type: uint16
         unit_of_measurement: "%"
-        # state_class: measurement # not set, not a statistical value
+        # state_class: measurement # nicht gesetzt, weil weil kein statistischer Wert
         scale: 0.01
         precision: 1
         slave: 1
         scan_interval: 3600
       
-      - name: "MAGNA3 Setpoint Range Max"
+      - name: "MAGNA3 Sollwertbereich Max"
         unique_id: magna3_r00216_setpoint_range_max
         address: 215  # Register 00216
         input_type: input
         data_type: uint16
         unit_of_measurement: "%"
-        # state_class: measurement # not set, not a statistical value
+        # state_class: measurement # nicht gesetzt, weil weil kein statistischer Wert
         scale: 0.01
         precision: 1
         slave: 1
         scan_interval: 3600
       
       
-      - name: "MAGNA3 Flow Estimation State"
+      - name: "MAGNA3 Flow Estimation Status"
         unique_id: magna3_r00221_flow_estimation_state
         address: 220  # Register 00221
         input_type: input
         data_type: uint16
         slave: 1
         scan_interval: 15
-        # No device_class, status code value
+        # Kein Device Class, da Status-Code
         # 0: Within range, 1: Below range, 2: Above range
 
-      - name: "MAGNA3 Kp Actual"
+      - name: "MAGNA3 Aktueller Kp (P-Faktor)"
         unique_id: magna3_r00222_kp_actual
         address: 221  # Register 00222
         input_type: input
         data_type: uint16
-        # No device_class, dimensionless factor
+        # Kein Device Class, da dimensionsloser Faktor
         state_class: measurement
         scale: 0.1
         precision: 1
         slave: 1
         scan_interval: 60
-        # icon: mdi:sine-wave # icons not allowed for modbus sensors
+        # icon: mdi:sine-wave # icons sind bei Sensoren hier unzulässig
 
-      - name: "MAGNA3 Ti Actual"
+      - name: "MAGNA3 Aktuelles Ti (I-Faktor)"
         unique_id: magna3_r00223_ti_actual
         address: 222  # Register 00223
         input_type: input
         data_type: uint16
-        unit_of_measurement: "s"     # Important for duration
+        unit_of_measurement: "s"     # Wichtig für duration
         device_class: duration
         state_class: measurement
         scale: 0.1
         precision: 1
         slave: 1
         scan_interval: 60
-        # icon: mdi:timer-outline # icons not allowed for modbus sensors
+        # icon: mdi:timer-outline # icons sind bei Sensoren hier unzulässig
 
-      - name: "MAGNA3 Direct Control"
+      - name: "MAGNA3 Regelrichtung Status"
         unique_id: magna3_r00224_direct_control_actual
         address: 223  # Register 00224
         input_type: input
         data_type: uint16
         slave: 1
         scan_interval: 60
-        # No device_class, binary status (0/1)
+        # Kein Device Class, da Binär-Status (0/1)
         # 0: Inverse (Standard), 1: Direct
 
-      - name: "MAGNA3 Control Source Code"
+      - name: "MAGNA3 Steuerquelle Code"
         unique_id: magna3_r00225_control_source
         address: 224  # Register 00225
         input_type: input
@@ -381,9 +381,9 @@ modbus:
         # Werte: 1=Display, 2=Bus, 3=GO App, 4=Digtal Input, 5=Off Button
 
       #
-      # --- Register 00301-00365: Pump Data (Measurements) --- all registers are read-only (RO)
+      # --- Register 00301-00365: Pump Data (Messwerte) --- alle Register sind read-only (RO)
       
-      - name: "MAGNA3 Head Pressure"
+      - name: "MAGNA3 Förderhöhe"
         unique_id: magna3_r00301_head
         address: 300  # Register 00301
         input_type: input
@@ -396,45 +396,45 @@ modbus:
         slave: 1
         scan_interval: 15
       
-      - name: "MAGNA3 Volume Flow"
+      - name: "MAGNA3 Durchfluss"
         unique_id: magna3_r00302_volume_flow
         address: 301  # Register 00302
         input_type: input
         data_type: uint16
         unit_of_measurement: "m³/h"
-        device_class: volume_flow_rate # added, HA now supports volume flow rates
+        device_class: volume_flow_rate # added, weil HA inzwischen Volume flows unterstützt
         state_class: measurement
         scale: 0.1
         precision: 1
         slave: 1
         scan_interval: 15
-        # icon: mdi:water-pump # icons not allowed for modbus sensors
+        # icon: mdi:water-pump # icons sind bei Sensoren hier unzulässig
       
-      - name: "MAGNA3 Relative Performance"
+      - name: "MAGNA3 Relative Leistung"
         unique_id: magna3_r00303_relative_performance
         address: 302  # Register 00303
         input_type: input
         data_type: uint16
         unit_of_measurement: "%"
-        # no device_class, HA only supports battery, humidity or power_factor for percentages
+        # hier keine device_class einfügen, da HA bei Prozentwerten nur battery, humidity oder power_factor kennt
         state_class: measurement
         scale: 0.01
         precision: 2
         slave: 1
         scan_interval: 15
       
-      - name: "MAGNA3 Speed"
+      - name: "MAGNA3 Drehzahl"
         unique_id: magna3_r00304_speed
         address: 303  # Register 00304
         input_type: input
         data_type: uint16
         unit_of_measurement: "rpm"
-        # device_class: frequency # frequency is wrong here. HA has no device_class for RPM, better none than a wrong one
+        # device_class: frequency # frequency ist falsch hier. HA hat bisher keine device_class für RPM also lieber keine als eine falsche 
         state_class: measurement
         slave: 1
         scan_interval: 15
       
-      - name: "MAGNA3 Frequency"
+      - name: "MAGNA3 Frequenz"
         unique_id: magna3_r00305_frequency
         address: 304  # Register 00305
         input_type: input
@@ -447,25 +447,25 @@ modbus:
         slave: 1
         scan_interval: 15
       
-      - name: "MAGNA3 Digital Input"
+      - name: "MAGNA3 Digitale Eingänge"
         unique_id: magna3_r00306_digital_input
         address: 305  # Register 00306
         input_type: input
         data_type: uint16
         slave: 1
         scan_interval: 60
-        # Bitfield: DI1-DI3
+        # Bitfeld: DI1-DI3
       
-      - name: "MAGNA3 Digital Output"
+      - name: "MAGNA3 Digitale Ausgänge"
         unique_id: magna3_r00307_digital_output
         address: 306  # Register 00307
         input_type: input
         data_type: uint16
         slave: 1
         scan_interval: 60
-        # Bitfield: DO1-DO2
+        # Bitfeld: DO1-DO2
       
-      - name: "MAGNA3 Actual Setpoint"
+      - name: "MAGNA3 Sollwert (Aktuell)"
         unique_id: magna3_r00308_actual_setpoint
         address: 307  # Register 00308
         input_type: input
@@ -476,9 +476,9 @@ modbus:
         precision: 1
         slave: 1
         scan_interval: 15
-        # icon: mdi:speedometer # icons not allowed for modbus sensors
+        # icon: mdi:speedometer # icons sind bei Sensoren hier unzulässig
       
-      - name: "MAGNA3 Motor Current"
+      - name: "MAGNA3 Motorstrom"
         unique_id: magna3_r00309_motor_current
         address: 308  # Register 00309
         input_type: input
@@ -491,7 +491,7 @@ modbus:
         slave: 1
         scan_interval: 30
       
-      - name: "MAGNA3 DC Link Voltage"
+      - name: "MAGNA3 DC-Link Spannung"
         unique_id: magna3_r00310_dc_link_voltage
         address: 309  # Register 00310
         input_type: input
@@ -504,7 +504,7 @@ modbus:
         slave: 1
         scan_interval: 30
       
-      - name: "MAGNA3 Power Consumption"
+      - name: "MAGNA3 Leistungsaufnahme"
         unique_id: magna3_r00312_power
         address: 311  # Register 00312-00313 (32-bit)
         input_type: input
@@ -515,12 +515,12 @@ modbus:
         slave: 1
         scan_interval: 15
       
-      - name: "MAGNA3 Electronic Temp"
+      - name: "MAGNA3 Elektronik-Temperatur"
         unique_id: magna3_r00321_electronic_temp
         address: 320  # Register 00321
         input_type: input
         data_type: uint16
-        unit_of_measurement: "K"  # Grundfos delivers raw Kelvin values; HA converts automatically to C/F via device_class
+        unit_of_measurement: "K"  # Grundfos liefert Kelvin-Rohwerte; HA konvertiert automatisch in °C/°F via device_class
         device_class: temperature
         state_class: measurement
         scale: 0.01
@@ -528,12 +528,12 @@ modbus:
         slave: 1
         scan_interval: 15
       
-      - name: "MAGNA3 Pump Liquid Temp"
+      - name: "MAGNA3 Medientemperatur"
         unique_id: magna3_r00322_pump_liquid_temp
         address: 321  # Register 00322
         input_type: input
         data_type: uint16
-        unit_of_measurement: "K"  # Grundfos delivers raw Kelvin values; HA converts automatically to C/F via device_class
+        unit_of_measurement: "K"  # Grundfos liefert Kelvin-Rohwerte; HA konvertiert automatisch in °C/°F via device_class
         device_class: temperature
         state_class: measurement
         scale: 0.01
@@ -541,7 +541,7 @@ modbus:
         slave: 1
         scan_interval: 15
       
-      - name: "MAGNA3 Specific Energy Consumption"
+      - name: "MAGNA3 Spez. Energieverbrauch"
         unique_id: magna3_r00326_specific_energy
         address: 325  # Register 00326
         input_type: input
@@ -551,29 +551,29 @@ modbus:
         slave: 1
         scan_interval: 300
       
-      - name: "MAGNA3 Operation Time"
+      - name: "MAGNA3 Betriebsstunden (Laufend)"
         unique_id: magna3_r00327_operation_time
         address: 326  # Register 00327-00328 (32-bit)
         input_type: input
         data_type: uint32
         unit_of_measurement: "h"
-        # device_class: duration # not compatible with state_class: total_increasing per HA docs
+        # device_class: duration # nicht kompatibel mit state_class: total_increasing laut HA-Doku
         state_class: total_increasing
         slave: 1
         scan_interval: 300
 
-      - name: "MAGNA3 Total Powered Time"
+      - name: "MAGNA3 Betriebsstunden (Gesamt)"
         unique_id: magna3_r00329_total_powered_time
         address: 328  # Register 00329-00330 (32-bit)
         input_type: input
         data_type: uint32
         unit_of_measurement: "h"
-        # device_class: duration # not compatible with state_class: total_increasing per HA docs
+        # device_class: duration # nicht kompatibel mit state_class: total_increasing laut HA-Doku
         state_class: total_increasing
         slave: 1
         scan_interval: 300
       
-      - name: "MAGNA3 Energy Consumption"
+      - name: "MAGNA3 Energieverbrauch"
         unique_id: magna3_r00332_energy
         address: 331  # Register 00332-00333 (32-bit)
         input_type: input
@@ -584,7 +584,7 @@ modbus:
         slave: 1
         scan_interval: 300
       
-      - name: "MAGNA3 Number of Starts"
+      - name: "MAGNA3 Anzahl Starts"
         unique_id: magna3_r00334_number_of_starts
         address: 333  # Register 00334-00335 (32-bit)
         input_type: input
@@ -593,7 +593,7 @@ modbus:
         slave: 1
         scan_interval: 300
       
-      - name: "MAGNA3 User Setpoint"
+      - name: "MAGNA3 Sollwert (Benutzer)"
         unique_id: magna3_r00338_user_setpoint
         address: 337  # Register 00338
         input_type: input
@@ -604,9 +604,9 @@ modbus:
         precision: 1
         slave: 1
         scan_interval: 15
-        # icon: mdi:speedometer # icons not allowed for modbus sensors
+        # icon: mdi:speedometer # icons sind bei Sensoren hier unzulässig
       
-      - name: "MAGNA3 Diff Pressure"
+      - name: "MAGNA3 Differenzdruck"
         unique_id: magna3_r00339_diff_pressure
         address: 338  # Register 00339
         input_type: input
@@ -619,16 +619,16 @@ modbus:
         slave: 1
         scan_interval: 30
       
-      - name: "MAGNA3 Pump Unix RTC"
+      - name: "MAGNA3 Uhrzeit (Unix)"
         unique_id: magna3_r00343_pump_rtc
         address: 342  # Register 00343-00344 (32-bit)
         input_type: input
         data_type: uint32
-        # device_class: timestamp # did not work, HA does not understand the time format
+        # device_class: timestamp # hat nicht funktioniert weil HA das Zeitformat nicht versteht
         slave: 1
         scan_interval: 300
       
-      - name: "MAGNA3 Max Flow Limit"
+      - name: "MAGNA3 Max Durchflusslimit"
         unique_id: magna3_r00345_max_flow_limit
         address: 344  # Register 00345
         input_type: input
@@ -641,8 +641,8 @@ modbus:
         slave: 1
         scan_interval: 60
       
-      # Optional: With external temperature sensor
-      # - name: "MAGNA3 Heat Energy"
+      # Optional: Mit externem Temperatursensor
+      # - name: "MAGNA3 Wärmeenergie"
       #   unique_id: magna3_r00352_heat_energy
       #   address: 351  # Register 00352-00353 (32-bit)
       #   input_type: input
@@ -653,7 +653,7 @@ modbus:
       #   slave: 1
       #   scan_interval: 300
       
-      # - name: "MAGNA3 Heat Power"
+      # - name: "MAGNA3 Wärmeleistung"
       #   unique_id: magna3_r00354_heat_power
       #   address: 353  # Register 00354-00355 (32-bit)
       #   input_type: input
@@ -664,7 +664,7 @@ modbus:
       #   slave: 1
       #   scan_interval: 60
       
-      # - name: "MAGNA3 Heat Diff Temp"
+      # - name: "MAGNA3 Temperaturdifferenz"
       #   unique_id: magna3_r00356_heat_diff_temp
       #   address: 355  # Register 00356
       #   input_type: input
@@ -677,7 +677,7 @@ modbus:
       #   slave: 1
       #   scan_interval: 60
       
-      - name: "MAGNA3 Pumped Volume"
+      - name: "MAGNA3 Gepumptes Volumen"
         unique_id: magna3_r00357_volume1
         address: 356  # Register 00357-00358 (32-bit)
         input_type: input
@@ -690,7 +690,7 @@ modbus:
         slave: 1
         scan_interval: 300
         
-      - name: "MAGNA3 Pumped Volume (Direction 2)" # manually added
+      - name: "MAGNA3 Gepumptes Volumen (Richtung 2)" # selbst hinzugefügt
         unique_id: magna3_r00361_volume2
         address: 360  # Register 00361-00362 (32-bit)
         input_type: input
@@ -703,8 +703,8 @@ modbus:
         slave: 1
         scan_interval: 300
       
-      # --- Optional: With external pressure sensor ---
-      # - name: "MAGNA3 Remote Pressure 1"
+      # --- Optional: Mit externem Drucksensor ---
+      # - name: "MAGNA3 Remote Druck 1"
       #   unique_id: magna3_r00316_remote_pressure1
       #   address: 315  # Register 00316
       #   input_type: input
@@ -717,8 +717,8 @@ modbus:
       #   slave: 1
       #   scan_interval: 30
     
-      # --- Optional: With external temperature sensor ---
-      # - name: "MAGNA3 Remote Temperature 1"
+      # --- Optional: Mit externem Temperatursensor ---
+      # - name: "MAGNA3 Remote Temperatur 1"
       #   unique_id: magna3_r00320_remote_temp1
       #   address: 319  # Register 00320
       #   input_type: input
@@ -734,12 +734,12 @@ modbus:
 
 
 # ==============================================================================
-# TEMPLATE BINARY SENSORS - Decode status bits
+# TEMPLATE BINARY SENSORS - Status-Bits dekodieren
 # ==============================================================================
-# The Modbus integration cannot read individual bits,
-# so template binary sensors with bit masks are used
+# Die Modbus-Integration kann nicht einzelne Bits auslesen,
+# daher über Template Binary Sensors mit Bit-Masken
 template:
-  - binary_sensor: # for register 00201
+  - binary_sensor: # für Register 00201
       # Bit 0: LowFlowStop
       - name: "MAGNA3 Low Flow Stop"
         unique_id: magna3_status_low_flow_stop
@@ -756,14 +756,14 @@ template:
         icon: mdi:content-copy
       
       # Bit 2: MaxFlowLimit Enabled
-      - name: "MAGNA3 FlowLimit Active"
+      - name: "MAGNA3 FlowLimit Aktiv"
         unique_id: magna3_status_flowlimit_enabled
         state: >
           {{ states('sensor.magna3_status_bits_raw') | int(0) | bitwise_and(4) > 0 }}
         icon: mdi:water-check
       
-      # Bit 6: Rotation (pump running)
-      - name: "MAGNA3 Running"
+      # Bit 6: Rotation (Pumpe läuft)
+      - name: "MAGNA3 Läuft"
         unique_id: magna3_status_rotation
         state: >
           {{ states('sensor.magna3_status_bits_raw') | int(0) | bitwise_and(64) > 0 }}
@@ -771,7 +771,7 @@ template:
         icon: mdi:pump
       
       # Bit 8: AccessMode (Remote/Local)
-      - name: "MAGNA3 Remote Mode"
+      - name: "MAGNA3 Remote Modus"
         unique_id: magna3_status_remote_mode
         state: >
           {{ states('sensor.magna3_status_bits_raw') | int(0) | bitwise_and(256) > 0 }}
@@ -779,7 +779,7 @@ template:
         icon: mdi:lan-connect
       
       # Bit 9: OnOff
-      - name: "MAGNA3 Powered On"
+      - name: "MAGNA3 Eingeschaltet"
         unique_id: magna3_status_on_off
         state: >
           {{ states('sensor.magna3_status_bits_raw') | int(0) | bitwise_and(512) > 0 }}
@@ -795,15 +795,15 @@ template:
         icon: mdi:alert-circle
       
       # Bit 11: Warning
-      - name: "MAGNA3 Warning"
+      - name: "MAGNA3 Warnung"
         unique_id: magna3_status_warning
         state: >
           {{ states('sensor.magna3_status_bits_raw') | int(0) | bitwise_and(2048) > 0 }}
         device_class: problem
         icon: mdi:alert
       
-      # Bit 12: ForcedToLocal - remote control off, local manual mode on
-      - name: "MAGNA3 Forced to Local"
+      # Bit 12: ForcedToLocal - zeigt ob Fernsteuerung ausgeschaltet und lokaler Handbetrieb eingeschaltet ist
+      - name: "MAGNA3 Zwang auf Handbetrieb"
         unique_id: magna3_status_forced_to_local
         state: >
           {{ states('sensor.magna3_status_bits_raw') | int(0) | bitwise_and(4096) > 0 }}
@@ -811,32 +811,32 @@ template:
         icon: mdi:hand-back-left
       
       # Bit 13: AtMaxSpeed
-      - name: "MAGNA3 At Max Speed"
+      - name: "MAGNA3 Max Drehzahl"
         unique_id: magna3_status_at_max_speed
         state: >
           {{ states('sensor.magna3_status_bits_raw') | int(0) | bitwise_and(8192) > 0 }}
         icon: mdi:speedometer
       
       # Bit 15: AtMinSpeed
-      - name: "MAGNA3 At Min Speed"
+      - name: "MAGNA3 Min Drehzahl"
         unique_id: magna3_status_at_min_speed
         state: >
           {{ states('sensor.magna3_status_bits_raw') | int(0) | bitwise_and(32768) > 0 }}
         icon: mdi:speedometer
 
   # ==========================================================================
-  # TEMPLATE SENSORS - Computed values and text outputs
+  # TEMPLATE SENSORS - Berechnete Werte und Textausgaben
   # ==========================================================================
 
   - sensor:
-      # Computes software version and date from BCD values in registers 00034 to 00037
+      # errechnet Softwareversion und -datum aus den BCD-Werten in den Registern 00034 bis 00037
       - name: "MAGNA3 Software Version" 
         unique_id: magna3_software_version
         state: >
           {% set hi = states('sensor.magna3_software_version_hi_raw') | int(0) %}
           {% set lo = states('sensor.magna3_software_version_lo_raw') | int(0) %}
-          {% set dm = states('sensor.magna3_software_date_daymonth_raw') | int(0) %}
-          {% set yr = states('sensor.magna3_software_date_year_raw') | int(0) %}
+          {% set dm = states('sensor.magna3_software_datum_daymonth_raw') | int(0) %}
+          {% set yr = states('sensor.magna3_software_datum_year_raw') | int(0) %}
           {% set a = (hi // 4096) | bitwise_and(0x0F) %}
           {% set b = (hi // 256) | bitwise_and(0x0F) %}
           {% set c = (hi // 16) | bitwise_and(0x0F) %}
@@ -856,11 +856,11 @@ template:
           {{ a }}{{ b }}.{{ c }}{{ d }}.{{ e }}{{ f }}.{{ g }}{{ h }} ({{ day1 }}{{ day2 }}.{{ mon1 }}{{ mon2 }}.{{ y1 }}{{ y2 }}{{ y3 }}{{ y4 }})
         icon: mdi:information-outline
   
-      # Control mode as text
-      - name: "MAGNA3 Control Mode"
+      # Regelungsart als Text
+      - name: "MAGNA3 Regelungsart"
         unique_id: magna3_control_mode_text
         state: >
-          {% set mode = states('sensor.magna3_control_mode_code') | int(0) %}
+          {% set mode = states('sensor.magna3_regelungsart_code') | int(0) %}
           {% if mode == 0 %}Constant Speed
           {% elif mode == 1 %}Constant Frequency
           {% elif mode == 3 %}Constant Head
@@ -874,28 +874,28 @@ template:
           {% elif mode == 129 %}FLOWADAPT
           {% elif mode == 130 %}Closed-Loop Sensor
           {% elif mode == 131 %}AUTOADAPT(CP)
-          {% else %}Unknown ({{ mode }})
+          {% else %}Unbekannt ({{ mode }})
           {% endif %}
         icon: mdi:tune
       
-      # Operation mode as text
-      - name: "MAGNA3 Operation Mode"
+      # Betriebsmodus als Text
+      - name: "MAGNA3 Betriebsmodus"
         unique_id: magna3_operation_mode_text
         state: >
-          {% set mode = states('sensor.magna3_operation_mode_code') | int(0) %}
+          {% set mode = states('sensor.magna3_betriebsmodus_code') | int(0) %}
           {% if mode == 0 %}Auto-Control
           {% elif mode == 4 %}Open Loop Min
           {% elif mode == 6 %}Open Loop Max
-          {% else %}Unknown ({{ mode }})
+          {% else %}Unbekannt ({{ mode }})
           {% endif %}
         icon: mdi:cog-outline
       
-      # Alarm code as text (most common codes)
+      # Alarm-Code als Text (häufigste Codes)
       - name: "MAGNA3 Alarm Text"
         unique_id: magna3_alarm_text
         state: >
           {% set code = states('sensor.magna3_alarm_code') | int(0) %}
-          {% if code == 0 %}No Alarm
+          {% if code == 0 %}Kein Alarm
           {% elif code == 1 %}Leakage Current
           {% elif code == 2 %}Missing Phase
           {% elif code == 3 %}External Fault
@@ -912,42 +912,42 @@ template:
           {% endif %}
         icon: mdi:alert-circle-outline
       
-      # Energy cost (adjustable)
-      - name: "MAGNA3 Energy Cost"
+      # Energiekosten (anpassbar)
+      - name: "MAGNA3 Energiekosten"
         unique_id: magna3_energy_cost
         unit_of_measurement: "EUR"
         device_class: monetary
         state_class: total
         state: >
-          {{ (states('sensor.magna3_energy_consumption') | float(0) * 0.30) | round(2) }}
-        # ↑ Adjust electricity price!
+          {{ (states('sensor.magna3_energieverbrauch') | float(0) * 0.30) | round(2) }}
+        # ↑ Strompreis anpassen!
       
-      # Calculate efficiency
-      - name: "MAGNA3 Efficiency"
+      # Effizienz berechnen
+      - name: "MAGNA3 Effizienz"
         unique_id: magna3_efficiency
         unit_of_measurement: "%"
         state_class: measurement
         state: >
-          {% set p_elec = states('sensor.magna3_power_consumption') | float(0) %}
-          {% set flow = states('sensor.magna3_volume_flow') | float(0) %}
-          {% set head = states('sensor.magna3_head_pressure') | float(0) %}
+          {% set p_elec = states('sensor.magna3_leistungsaufnahme') | float(0) %}
+          {% set flow = states('sensor.magna3_durchfluss') | float(0) %}
+          {% set head = states('sensor.magna3_forderhohe') | float(0) %}
           {% if p_elec > 0 %}
             {% set p_hydr = (flow * head * 2.725) %}
             {{ ((p_hydr / p_elec) * 100) | round(1) }}
           {% else %}0{% endif %}
         icon: mdi:percent
       
-      # Convert setpoint to meters (formula verified 2026-02-11)
-      - name: "MAGNA3 Actual Setpoint (m)"
+      # Sollwert in Meter umrechnen (Formel verifiziert am 11.02.2026)
+      - name: "MAGNA3 Sollwert (Meter)"
         unique_id: magna3_setpoint_meter
         unit_of_measurement: "m"
         device_class: distance
         state_class: measurement
         state: >
-          {% set sp = states('sensor.magna3_user_setpoint') | float(-1) %}
-          {% set s_max = states('sensor.magna3_feedback_sensor_max') | float(0) %}
-          {% set r_min_pct = states('sensor.magna3_setpoint_range_min') | float(0) %}
-          {% set r_max_pct = states('sensor.magna3_setpoint_range_max') | float(0) %}
+          {% set sp = states('sensor.magna3_sollwert_benutzer') | float(-1) %}
+          {% set s_max = states('sensor.magna3_sensor_maximum') | float(0) %}
+          {% set r_min_pct = states('sensor.magna3_sollwertbereich_min') | float(0) %}
+          {% set r_max_pct = states('sensor.magna3_sollwertbereich_max') | float(0) %}
           {% if sp < 0 or s_max <= 0 or r_max_pct <= r_min_pct %}
             unavailable
           {% else %}
@@ -957,38 +957,38 @@ template:
           {% endif %}
         icon: mdi:ruler
       
-      - name: "MAGNA3 Pump RTC"
+      - name: "MAGNA3 Uhrzeit"
         unique_id: magna3_pump_rtc_formatted
         device_class: timestamp
         state: >
-          {{ states('sensor.magna3_pump_unix_rtc') | int(0) | as_datetime }}
+          {{ states('sensor.magna3_uhrzeit_unix') | int(0) | as_datetime }}
 
 
-      - name: "MAGNA3 Flow Estimation State Text"
+      - name: "MAGNA3 Durchfluss-Status Text"
         unique_id: magna3_flow_estimation_text
         state: >
-          {% set status = states('sensor.magna3_flow_estimation_state') | int(0) %}
-          {% if status == 0 %}Within range
-          {% elif status == 1 %}Below range
-          {% elif status == 2 %}Above range
-          {% else %}Unknown ({{ status }})
+          {% set status = states('sensor.magna3_flow_estimation_status') | int(0) %}
+          {% if status == 0 %}innerhalb des Messbereichs
+          {% elif status == 1 %}unterhalb des Messbereichs
+          {% elif status == 2 %}oberhalb des Messbereichs
+          {% else %}Unbekannt ({{ status }})
           {% endif %}
         icon: mdi:chart-bell-curve
 
-        # Control source as text
-      - name: "MAGNA3 Control Source"
+        # Steuerquelle als Text
+      - name: "MAGNA3 Steuerquelle"
         unique_id: magna3_control_source_text
         state: >
-          {% set source = states('sensor.magna3_control_source_code') | int(0) %}
+          {% set source = states('sensor.magna3_steuerquelle_code') | int(0) %}
           {% if source == 1 %}Pumpendisplay
           {% elif source == 2 %}Modbus/TCP
           {% elif source == 3 %}Grundfos GO App
           {% elif source == 4 %}Digital Input
-          {% elif source == 5 %}OFF Button
-          {% else %}Unknown ({{ source }})
+          {% elif source == 5 %}OFF Taste
+          {% else %}Unbekannt ({{ source }})
           {% endif %}
         icon: >
-          {% set source = states('sensor.magna3_control_source_code') | int(0) %}
+          {% set source = states('sensor.magna3_steuerquelle_code') | int(0) %}
           {% if source == 1 %}mdi:monitor
           {% elif source == 2 %}mdi:ethernet
           {% elif source == 3 %}mdi:cellphone-wireless
@@ -1002,7 +1002,7 @@ template:
         unique_id: magna3_months_to_bearing_service
         unit_of_measurement: "mon"
         state_class: measurement
-        # device_class: (omitted)  # HA has no duration device_class for "months"
+        # device_class: (weggelassen)  # HA hat keine duration-Device-Class für "Monate"
         availability: >
           {{ (states('sensor.magna3_bearing_service_raw') | int(0)) | bitwise_and(0xFF) != 255 }}
         state: >
@@ -1014,8 +1014,8 @@ template:
           {% set v = states('sensor.magna3_bearing_service_raw') | int(0) %}
           {% set t = (v // 256) | bitwise_and(0x01) %}
           {{ 'Lubricate bearings' if t == 0 else 'Change bearings' }}
-        # device_class: (omitted)  # Text status
-        # state_class: (omitted)   # Text status
+        # device_class: (weggelassen)  # Textstatus
+        # state_class: (weggelassen)   # Textstatus
 
       - name: "MAGNA3 Drive State"
         unique_id: magna3_drive_state_text
@@ -1030,83 +1030,83 @@ template:
           {% elif s == 7 %}Start on the run (flying cut-in)
           {% else %}Code {{ s }}
           {% endif %}
-        # device_class: (omitted)  # Text status
-        # state_class: (omitted)   # Text status
+        # device_class: (weggelassen)  # Textstatus
+        # state_class: (weggelassen)   # Textstatus
 
 
-      # --- Flow sensor natively shows m³/h. E.g. Lambda heat pump uses L/h ---
-      # --- This template sensor mirrors the original Modbus sensor in L/h for easier comparison in graphs ---
-      - name: "MAGNA3 Flow Rate L/h"
-        unique_id: magna3_flow_rate_lh
+      # --- Durchfluss Sensor zeigt nativ m³/h an statt L/h. Z.B. die Lambda WP aber L/h ---
+      # --- Dieser Template-Sensor spiegelt den Original-Modbus-Sensor in L/h zur besseren Vergleichbarkeit in Kurven ---
+      - name: "MAGNA3 Durchfluss L/h"
+        unique_id: magna3_durchfluss_lh
         unit_of_measurement: "L/h"
-        state: "{{ (states('sensor.magna3_volume_flow') | float(0) * 1000) | round(0) }}"
+        state: "{{ (states('sensor.magna3_durchfluss') | float(0) * 1000) | round(0) }}"
         device_class: volume_flow_rate
         state_class: measurement
 
 # ==============================================================================
-# INPUT NUMBERS - UI Controls
+# INPUT NUMBERS - UI-Steuerung
 # ==============================================================================
 input_number:
-  magna3_setpoint_percent:
-    name: "MAGNA3 Setpoint (%)"
+  magna3_sollwert_prozent:
+    name: "MAGNA3 Sollwert (%)"
     min: 0
     max: 100
     step: 0.5
     unit_of_measurement: "%"
     icon: mdi:percent
-    mode: slider # alternatively "box" mode is possible
+    mode: slider # alternativ auch box möglich
   
-  magna3_setpoint_m:
-    name: "MAGNA3 Setpoint (m)"
+  magna3_sollwert_meter:
+    name: "MAGNA3 Sollwert (m)"
     min: 0
     max: 10
     step: 0.1
     unit_of_measurement: "m"
     icon: mdi:ruler
-    mode: slider # alternatively "box" mode is possible
+    mode: slider # alternativ auch box möglich
   
-  magna3_control_mode:
-    name: "MAGNA3 Control Mode (Code)"
+  magna3_regelungsart:
+    name: "MAGNA3 Regelungsart (Code)"
     min: 0
     max: 131
     step: 1
     icon: mdi:cog
     mode: box
   
-  # --- Optional: Set FLOWLIMIT (Register 00106) ---
-  # WARNING: Only enable if FLOWADAPT or EnableMaxFlowLimit is used!
+  # --- Optional: FLOWLIMIT setzen (Register 00106) ---
+  # ACHTUNG: Nur aktivieren wenn FLOWADAPT oder EnableMaxFlowLimit verwendet wird!
   # magna3_max_flow_limit:
-  #   name: "MAGNA3 Max Flow Limit"
+  #   name: "MAGNA3 Max Durchflusslimit"
   #   min: 0
-  #   max: 90  # 0-90% of Qmax or 0-9.0 m³/h (depending on pump)
+  #   max: 90  # 0-90% von Qmax oder 0-9.0 m³/h (je nach Pumpe)
   #   step: 0.1
   #   unit_of_measurement: "m³/h"
-  #   # no state_class: measurement, this is a setpoint not a statistic
+  #   # kein state_class: measurement weil ein Setpoint und keine Statistik
   #   icon: mdi:water-check
   #   mode: slider
   
   # ============================================================================
-  # WARNING: PID PARAMETERS - EXPERTS ONLY!
+  # WARNUNG: PID-PARAMETER - NUR FÜR EXPERTEN!
   # ============================================================================
-  # The following registers (00110-00112) control the pump PID controller.
-  # Grundfos has optimally set these values at the factory!
+  # Die folgenden Register (00110-00112) steuern den PID-Regler der Pumpe.
+  # Grundfos hat diese Werte werkseitig optimal eingestellt!
   # 
-  # RISKS of changing:
-  # - Unstable control (pump cycles, oscillates)
-  # - Mechanical stress, motor overload
-  # - Wrong control direction (00112): CATASTROPHIC malfunction!
-  # - Setpoint not reached
-  # - Difficult to reverse
+  # RISIKEN beim Verstellen:
+  # - Instabile Regelung (Pumpe taktet, schwingt)
+  # - Mechanische Belastung, Motor-Überlastung
+  # - Bei falscher Regelrichtung (00112): KATASTROPHALE Fehlfunktion!
+  # - Keine Sollwert-Erreichung
+  # - Schwer rückgängig zu machen
   # 
-  # ONLY ENABLE if:
-  # - Explicitly recommended by Grundfos support
-  # - Hydraulics have been significantly changed
-  # - Under observation with measuring instruments!
+  # NUR AKTIVIEREN wenn:
+  # - Von Grundfos-Support explizit empfohlen
+  # - Hydraulik massiv verändert wurde
+  # - Unter Beobachtung mit Messgeräten!
   # ============================================================================
   
-  # --- PID parameters (EXPERTS ONLY, commented out!) ---
+  # --- PID-Parameter (NUR für Experten, auskommentiert!) ---
   # magna3_pid_kp:
-  #   name: "MAGNA3 Kp (P-Gain)"
+  #   name: "MAGNA3 Kp (P-Verstärkung)"
   #   min: 0
   #   max: 10.0
   #   step: 0.1
@@ -1114,11 +1114,11 @@ input_number:
   #   mode: box
   #   # Register 00110, Skalierung 0.1
   #   # Default: Pumpen-spezifisch (z.B. 1.5)
-  #   # Too high: overshoot, oscillation
-  #   # Too low: sluggish control
+  #   # Zu hoch → Überschwingen, Schwingen
+  #   # Zu niedrig → Träge Regelung
   
   # magna3_pid_ti:
-  #   name: "MAGNA3 Ti (Integral Time)"
+  #   name: "MAGNA3 Ti (Integralzeit)"
   #   min: 0
   #   max: 100.0
   #   step: 0.1
@@ -1127,31 +1127,31 @@ input_number:
   #   mode: box
   #   # Register 00111, Skalierung 0.1 s
   #   # Default: 10-30s (pumpen-spezifisch)
-  #   # Too small: fast integration, overshoot
-  #   # Too large: slow settling
+  #   # Zu klein → Schnelles Aufintegrieren, Überschwingen
+  #   # Zu groß → Langsame Ausregelung
   
   # magna3_pid_direct:
-  #   name: "MAGNA3 Control Direction"
+  #   name: "MAGNA3 Regelrichtung"
   #   min: 0
   #   max: 1
   #   step: 1
   #   icon: mdi:swap-vertical
   #   mode: box
   #   # Register 00112
-  #   # 0 = Inverse (default): Sensor up -> Pump down
-  #   # 1 = Direct: Sensor up -> Pump up
-  #   # WARNING: Wrong setting = pump controls in reverse!
+  #   # 0 = Invers (Standard): Sensor↑ → Pumpe↓
+  #   # 1 = Direkt: Sensor↑ → Pumpe↑
+  #   # ACHTUNG: Falsch eingestellt = Pumpe regelt verkehrt herum!
 
 # ==============================================================================
-# SCRIPTS - Pump Control
+# SCRIPTS - Pumpensteuerung
 # ==============================================================================
 script:
-  # Set setpoint in %
-  magna3_set_setpoint_percent:
-    alias: "MAGNA3: Set Setpoint (%)"
+  # Sollwert in % setzen
+  magna3_set_sollwert_prozent:
+    alias: "MAGNA3: Sollwert (%) setzen"
     fields:
       prozent:
-        description: "Setpoint in percent (0-100)"
+        description: "Sollwert in Prozent (0-100)"
         example: "45.5"
     sequence:
       - action: modbus.write_register
@@ -1163,28 +1163,28 @@ script:
             {% if prozent is defined %}
               {{ (prozent | float * 100) | int }}
             {% else %}
-              {{ (states('input_number.magna3_setpoint_percent') | float * 100) | int }}
+              {{ (states('input_number.magna3_sollwert_prozent') | float * 100) | int }}
             {% endif %}
   
-  magna3_set_setpoint_m:
-    alias: "MAGNA3: Set Setpoint (m)"
+  magna3_set_sollwert_meter:
+    alias: "MAGNA3: Sollwert (m) setzen"
     fields:
       meter:
-        description: "Setpoint in meters (e.g. 4.0)"
+        description: "Sollwert in Meter (z.B. 4.0)"
         example: "4.0"
     sequence:
       - variables:
-          m: "{{ meter | float if meter is defined else states('input_number.magna3_setpoint_m') | float }}"
-          s_max: "{{ states('sensor.magna3_feedback_sensor_max') | float(0) }}"
-          r_min_pct: "{{ states('sensor.magna3_setpoint_range_min') | float(0) }}"
-          r_max_pct: "{{ states('sensor.magna3_setpoint_range_max') | float(0) }}"
+          m: "{{ meter | float if meter is defined else states('input_number.magna3_sollwert_meter') | float }}"
+          s_max: "{{ states('sensor.magna3_sensor_maximum') | float(0) }}"
+          r_min_pct: "{{ states('sensor.magna3_sollwertbereich_min') | float(0) }}"
+          r_max_pct: "{{ states('sensor.magna3_sollwertbereich_max') | float(0) }}"
       - condition: template
         value_template: "{{ s_max > 0 and r_max_pct > r_min_pct }}"
       - variables:
           rmin: "{{ (r_min_pct / 100) * s_max }}"
           rmax: "{{ (r_max_pct / 100) * s_max }}"
           prozent: "{{ ((m - rmin) / (rmax - rmin)) * 100 }}"
-          # Clamp to 0-100% and convert to register value (0-10000)
+          # Clamp auf 0-100% und umrechnen in Registerwert (0-10000)
           reg_value: "{{ [0, [10000, (prozent * 100) | int] | min] | max }}"
       - action: modbus.write_register
         data:
@@ -1193,12 +1193,12 @@ script:
           slave: 1
           value: "{{ reg_value }}"
   
-  # Set control mode
-  magna3_set_control_mode:
-    alias: "MAGNA3: Set Control Mode"
+  # Regelungsart setzen
+  magna3_set_regelungsart:
+    alias: "MAGNA3: Regelungsart setzen"
     fields:
       mode:
-        description: "Mode code (6=Prop, 128=AUTO, 129=FLOW)"
+        description: "Mode Code (6=Prop, 128=AUTO, 129=FLOW)"
         example: "128"
     sequence:
       - action: modbus.write_register
@@ -1210,7 +1210,7 @@ script:
             {% if mode is defined %}
               {{ mode | int }}
             {% else %}
-              {{ states('input_number.magna3_control_mode') | int }}
+              {{ states('input_number.magna3_regelungsart') | int }}
             {% endif %}
   
   # Remote Start
@@ -1226,7 +1226,7 @@ script:
       - delay: 2
       - action: persistent_notification.create
         data:
-          message: "MAGNA3 was started remotely"
+          message: "MAGNA3 wurde remote gestartet"
           title: "MAGNA3"
   
   # Remote Stop
@@ -1242,12 +1242,12 @@ script:
       - delay: 2
       - action: persistent_notification.create
         data:
-          message: "MAGNA3 was stopped (remote active)"
+          message: "MAGNA3 wurde gestoppt (Remote aktiv)"
           title: "MAGNA3"
   
-  # Switch to local
+  # Zu Lokal zurück
   magna3_to_local:
-    alias: "MAGNA3: Switch to Local"
+    alias: "MAGNA3: Zurück zu Lokal"
     sequence:
       - action: modbus.write_register
         data:
@@ -1258,12 +1258,12 @@ script:
       - delay: 2
       - action: persistent_notification.create
         data:
-          message: "MAGNA3 switched to local control"
+          message: "MAGNA3 auf Lokal-Steuerung umgeschaltet"
           title: "MAGNA3"
   
   # Alarm Reset
   magna3_reset_alarm:
-    alias: "MAGNA3: Reset Alarm"
+    alias: "MAGNA3: Alarm zurücksetzen"
     sequence:
       # Rising Edge: 0 → 1
       - action: modbus.write_register
@@ -1278,56 +1278,56 @@ script:
           hub: Grundfos_MAGNA3
           address: 100
           slave: 1
-          value: 3  # Back to Remote + On
+          value: 3  # Zurück zu Remote + On
   
-  # Enable AUTOADAPT
+  # AUTOADAPT aktivieren
   magna3_enable_autoadapt:
-    alias: "MAGNA3: Enable AUTOADAPT"
+    alias: "MAGNA3: AUTOADAPT aktivieren"
     sequence:
-      - action: script.magna3_set_control_mode
+      - action: script.magna3_set_regelungsart
         data:
           mode: 128
       - action: persistent_notification.create
         data:
-          message: "Control mode: AUTOADAPT"
+          message: "Regelungsart: AUTOADAPT"
           title: "MAGNA3"
   
-  # Enable FLOWADAPT
+  # FLOWADAPT aktivieren
   magna3_enable_flowadapt:
-    alias: "MAGNA3: Enable FLOWADAPT"
+    alias: "MAGNA3: FLOWADAPT aktivieren"
     sequence:
-      - action: script.magna3_set_control_mode
+      - action: script.magna3_set_regelungsart
         data:
           mode: 129
       - action: persistent_notification.create
         data:
-          message: "Control mode: FLOWADAPT"
+          message: "Regelungsart: FLOWADAPT"
           title: "MAGNA3"
   
-  # Enable proportional pressure
+  # Proportionaldruck aktivieren
   magna3_enable_proportional:
-    alias: "MAGNA3: Enable Proportional Pressure"
+    alias: "MAGNA3: Proportionaldruck aktivieren"
     sequence:
-      - action: script.magna3_set_control_mode
+      - action: script.magna3_set_regelungsart
         data:
           mode: 6
       - action: persistent_notification.create
         data:
-          message: "Control mode: Proportional Pressure"
+          message: "Regelungsart: Proportionaldruck"
           title: "MAGNA3"
   
-  # --- Optional: Set FLOWLIMIT (Register 00106) ---
-  # NOTE: This script is currently not called from the UI,
-  # as the corresponding input_number is commented out.
-  # Call manually with explicit parameter only, e.g.:
+  # --- Optional: FLOWLIMIT setzen (Register 00106) ---
+  # HINWEIS: Dieses Script wird aktuell nicht über die UI aufgerufen,
+  # da die zugehörige input_number auskommentiert ist.
+  # Aufruf nur manuell mit explizitem Parameter, z.B.:
   #   action: script.magna3_set_max_flow_limit
   #   data:
-  #     limit_m3h: 2.5  # Max. flow rate in m³/h
+  #     limit_m3h: 2.5  # Max. Durchfluss in m³/h
   magna3_set_max_flow_limit:
-    alias: "MAGNA3: Set Max Flow Limit"
+    alias: "MAGNA3: Max Durchflusslimit setzen"
     fields:
       limit_m3h:
-        description: "Max flow in m3/h (e.g. 2.5)"
+        description: "Max. Durchfluss in m³/h (z.B. 2.5)"
         example: "2.5"
     sequence:
       - action: modbus.write_register
@@ -1340,15 +1340,15 @@ script:
             {{ (limit * 100) | int }}
       - action: persistent_notification.create
         data:
-          message: "Max flow limit set to {{ limit_m3h }} m3/h"
+          message: "Max Durchflusslimit auf {{ limit_m3h }} m³/h gesetzt"
           title: "MAGNA3"
   
-  # --- WARNING: PID parameters - EXPERTS ONLY! ---
+  # --- WARNUNG: PID-Parameter - NUR FÜR EXPERTEN! ---
   # magna3_set_pid_kp:
-  #   alias: "MAGNA3: Set Kp (EXPERTS!)"
+  #   alias: "MAGNA3: Kp setzen (EXPERTEN!)"
   #   fields:
   #     kp:
-  #       description: "Proportional gain (e.g. 1.5)"
+  #       description: "Proportionalverstärkung (z.B. 1.5)"
   #       example: "1.5"
   #   sequence:
   #     - action: modbus.write_register
@@ -1361,10 +1361,10 @@ script:
   #           {{ (value * 10) | int }}
   
   # magna3_set_pid_ti:
-  #   alias: "MAGNA3: Set Ti (EXPERTS!)"
+  #   alias: "MAGNA3: Ti setzen (EXPERTEN!)"
   #   fields:
   #     ti:
-  #       description: "Integral time in seconds (e.g. 15.0)"
+  #       description: "Integralzeit in Sekunden (z.B. 15.0)"
   #       example: "15.0"
   #   sequence:
   #     - action: modbus.write_register
@@ -1377,10 +1377,10 @@ script:
   #           {{ (value * 10) | int }}
   
   # magna3_set_pid_direct:
-  #   alias: "MAGNA3: Set Control Direction (DANGEROUS!)"
+  #   alias: "MAGNA3: Regelrichtung setzen (GEFÄHRLICH!)"
   #   fields:
   #     direct:
-  #       description: "0=Inverse, 1=Direct"
+  #       description: "0=Invers, 1=Direkt"
   #       example: "0"
   #   sequence:
   #     - action: modbus.write_register
@@ -1393,15 +1393,15 @@ script:
   #           {{ value }}
 
 # ==============================================================================
-# AUTOMATIONS - Examples
+# AUTOMATIONS - Beispiele
 # ==============================================================================
 automation:
-  # Watchdog alarm
+  # Watchdog-Alarm
   - id: magna3_watchdog_alarm
     alias: "MAGNA3: Modbus Watchdog"
     trigger:
       - platform: state
-        entity_id: binary_sensor.magna3_remote_mode
+        entity_id: binary_sensor.magna3_remote_modus
         to: 'off'
         for:
           seconds: 10
@@ -1413,11 +1413,11 @@ automation:
       - action: persistent_notification.create
         data:
           title: "⚠️ MAGNA3 Watchdog"
-          message: "Pump switched to local! Check Modbus connection."
+          message: "Pumpe auf Lokal gewechselt! Modbus-Verbindung prüfen."
   
-  # Alarm notification
+  # Alarm-Benachrichtigung
   - id: magna3_alarm_notification
-    alias: "MAGNA3: Alarm Notification"
+    alias: "MAGNA3: Alarm Benachrichtigung"
     trigger:
       - platform: state
         entity_id: binary_sensor.magna3_alarm
@@ -1430,63 +1430,63 @@ automation:
             Code: {{ states('sensor.magna3_alarm_code') }}
             {{ states('sensor.magna3_alarm_text') }}
   
-  # High current warning
+  # Warnung bei hohem Strom
   - id: magna3_high_current
-    alias: "MAGNA3: High Current Warning"
+    alias: "MAGNA3: Warnung Hoher Strom"
     trigger:
       - platform: numeric_state
-        entity_id: sensor.magna3_motor_current
+        entity_id: sensor.magna3_motorstrom
         above: 5.0
         for:
           minutes: 5
     action:
       - action: persistent_notification.create
         data:
-          title: "⚠️ MAGNA3 Warning"
-          message: "Motor current above 5A: {{ states('sensor.magna3_motor_current') }} A"
+          title: "⚠️ MAGNA3 Warnung"
+          message: "Motorstrom über 5A: {{ states('sensor.magna3_motorstrom') }} A"
   
-  # Setpoint sync: Input Number -> Modbus. Sends UI values to the pump
+  # Sollwert-Sync: Input Number → Modbus. Dafür zuständig, die Werte aus dem Input-Bereich an die Pumpe zu melden
   - id: magna3_sync_setpoint_percent
-    alias: "MAGNA3: Sync Setpoint %"
+    alias: "MAGNA3: Sync Sollwert %"
     trigger:
       - platform: state
-        entity_id: input_number.magna3_setpoint_percent
+        entity_id: input_number.magna3_sollwert_prozent
     action:
-      - action: script.magna3_set_setpoint_percent
+      - action: script.magna3_set_sollwert_prozent
   
   - id: magna3_sync_setpoint_meter
-    alias: "MAGNA3: Sync Setpoint m"
+    alias: "MAGNA3: Sync Sollwert m"
     trigger:
       - platform: state
-        entity_id: input_number.magna3_setpoint_m
+        entity_id: input_number.magna3_sollwert_meter
     action:
-      - action: script.magna3_set_setpoint_m
+      - action: script.magna3_set_sollwert_meter
 
-  # After each HA start: wait 30s for Modbus data, then set both sliders to current pump values.
+  # Nach jedem HA-Start: 30 Sekunden warten (bis Modbus-Daten da sind), dann werden beide Slider/Boxen auf die aktuellen Pumpenwerte gesetzt.
   - id: magna3_sync_slider_on_start
-    alias: "MAGNA3: Sync Setpoints on Start"
+    alias: "MAGNA3: Sollwerte bei Start synchronisieren"
     trigger:
       - platform: homeassistant
         event: start
     action:
-      - delay: 30  # Wait for Modbus sensors to load
+      - delay: 30  # Warten bis Modbus-Sensoren geladen
       - action: input_number.set_value
         target:
-          entity_id: input_number.magna3_setpoint_percent
+          entity_id: input_number.magna3_sollwert_prozent
         data:
-          value: "{{ states('sensor.magna3_user_setpoint') | float(0) }}"
+          value: "{{ states('sensor.magna3_sollwert_benutzer') | float(0) }}"
       - action: input_number.set_value
         target:
-          entity_id: input_number.magna3_setpoint_m
+          entity_id: input_number.magna3_sollwert_meter
         data:
-          value: "{{ states('sensor.magna3_actual_setpoint_m') | float(0) }}"
+          value: "{{ states('sensor.magna3_sollwert_meter') | float(0) }}"
         
-  # Trigger is pump feedback. User moves slider -> script writes to pump -> pump reports new value -> sliders update
+  # Trigger ist die Pumpen-Rückmeldung. Wenn der User einen Slider bewegt → Script schreibt zur Pumpe → Pumpe meldet neuen Wert → Slider werden aktualisiert
   - id: magna3_sync_both_sliders_from_pump
-    alias: "MAGNA3: Update Both Sliders from Pump Value"
+    alias: "MAGNA3: Beide Slider aus Pumpenwert aktualisieren"
     trigger:
       - platform: state
-        entity_id: sensor.magna3_user_setpoint
+        entity_id: sensor.magna3_sollwert_benutzer
     condition:
       - condition: template
         value_template: >
@@ -1495,12 +1495,12 @@ automation:
       - delay: 2
       - action: input_number.set_value
         target:
-          entity_id: input_number.magna3_setpoint_percent
+          entity_id: input_number.magna3_sollwert_prozent
         data:
-          value: "{{ states('sensor.magna3_user_setpoint') | float(0) }}"
+          value: "{{ states('sensor.magna3_sollwert_benutzer') | float(0) }}"
       - action: input_number.set_value
         target:
-          entity_id: input_number.magna3_setpoint_m
+          entity_id: input_number.magna3_sollwert_meter
         data:
-          value: "{{ states('sensor.magna3_actual_setpoint_m') | float(0) }}"
+          value: "{{ states('sensor.magna3_sollwert_meter') | float(0) }}"
 
