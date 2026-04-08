@@ -1,23 +1,23 @@
-<p align="center">
-  <img src="images/logo.png" alt="MAGNA3 Modbus Logo" width="200"/>
-</p>
+<table>
+  <tr>
+    <td><img src="images/logo.png" alt="MAGNA3 Modbus Logo" width="120"/></td>
+    <td>
+      <h1 style="margin:0;">Grundfos MAGNA3</h1>
+      <p style="margin:0;">Home Assistant Modbus TCP</p>
+    </td>
+  </tr>
+</table>
 
-<h1 align="center">Grundfos MAGNA3 — Home Assistant Modbus TCP</h1>
+YAML-Package zur Integration einer Grundfos MAGNA3 Heizkreispumpe in Home Assistant via Modbus TCP (CIM 500 Modul).
 
-<p align="center">
-  YAML-Package zur Integration einer Grundfos MAGNA3 Heizkreispumpe in Home Assistant via Modbus TCP (CIM 500 Modul).
-</p>
-
-<p align="center">
-  <a href="README.en.md">English version</a>
-</p>
+<a href="README.en.md">English version</a>
 
 ---
 
 ## Funktionsumfang
 
-- **40+ Sensoren**: Foerderhoehe, Durchfluss, Drehzahl, Leistung, Temperaturen, Energieverbrauch, Betriebsstunden, PID-Parameter u.v.m.
-- **Status-Bits**: 12 Binary Sensors aus dem Status-Register (Pumpe laeuft, Alarm, Warnung, Remote-Modus, ...)
+- **40+ Sensoren**: Förderhöhe, Durchfluss, Drehzahl, Leistung, Temperaturen, Energieverbrauch, Betriebsstunden, PID-Parameter u.v.m.
+- **Status-Bits**: 12 Binary Sensors aus dem Status-Register (Pumpe läuft, Alarm, Warnung, Remote-Modus, ...)
 - **Berechnete Werte**: Effizienz, Energiekosten, Sollwert in Meter, Software-Version (BCD-Dekodierung), Alarm-/Warnungstexte
 - **Steuerung**: Remote Start/Stop, Regelungsart wechseln (AUTOADAPT, FLOWADAPT, Proportionaldruck), Sollwert setzen (% und Meter)
 - **Automationen**: Watchdog, Alarm-Benachrichtigung, Strom-Warnung, bidirektionale Sollwert-Synchronisation
@@ -49,31 +49,31 @@
   <img src="images/dashboard_screenshot.png" alt="MAGNA3 Dashboard" width="400"/>
 </p>
 
-Die Datei `dashboard_card.yaml` enthaelt eine fertige Lovelace-Karte mit Gauges, Steuerbuttons und Statusanzeigen.
+Die Datei `dashboard_card.yaml` enthält eine fertige Lovelace-Karte mit Gauges, Steuerbuttons und Statusanzeigen.
 
-**Verwendung:** Inhalt von `dashboard_card.yaml` im Dashboard-Editor als manuelle Karte (YAML) einfuegen.
+**Verwendung:** Inhalt von `dashboard_card.yaml` im Dashboard-Editor als manuelle Karte (YAML) einfügen.
 
 ### Erforderliche HACS-Karten
 
-Die Dashboard-Karte benoetigt folgende HACS Frontend-Erweiterungen:
+Die Dashboard-Karte benötigt folgende HACS Frontend-Erweiterungen:
 
 | HACS-Karte | Zweck | HACS-Suche |
 |---|---|---|
-| [**Vertical Stack In Card**](https://github.com/ofekashery/vertical-stack-in-card) | Aeusserer Container ohne Rahmen | `vertical-stack-in-card` |
+| [**Vertical Stack In Card**](https://github.com/ofekashery/vertical-stack-in-card) | Äußerer Container ohne Rahmen | `vertical-stack-in-card` |
 | [**card-mod**](https://github.com/thomasloven/lovelace-card-mod) | CSS-Styling (Rahmen entfernen, Farben) | `card-mod` |
-| [**Mushroom**](https://github.com/piitaya/lovelace-mushroom) | Template-Karte fuer Durchfluss-Status | `mushroom` |
+| [**Mushroom**](https://github.com/piitaya/lovelace-mushroom) | Template-Karte für Durchfluss-Status | `mushroom` |
 
-Ohne diese Karten wird die Dashboard-Karte nicht korrekt dargestellt. Die Modbus-YAML selbst funktioniert unabhaengig davon.
+Ohne diese Karten wird die Dashboard-Karte nicht korrekt dargestellt. Die Modbus-YAML selbst funktioniert unabhängig davon.
 
-## Registeruebersicht
+## Registerübersicht
 
 ### Messwerte (Read-Only)
 
 | Register | Sensor | Einheit | Intervall |
 |---|---|---|---|
 | 00201 | Status-Bits (12 Binary Sensors) | Bitfeld | 30s |
-| 00202 | Prozess-Rueckmeldung | % | 30s |
-| 00301 | Foerderhoehe | m | 15s |
+| 00202 | Prozess-Rückmeldung | % | 30s |
+| 00301 | Förderhöhe | m | 15s |
 | 00302 | Durchfluss | m³/h | 15s |
 | 00303 | Relative Leistung | % | 15s |
 | 00304 | Drehzahl | rpm | 15s |
@@ -103,18 +103,18 @@ Ohne diese Karten wird die Dashboard-Karte nicht korrekt dargestellt. Die Modbus
 
 ### Optionale Register (auskommentiert)
 
-Die YAML enthaelt weitere Register als auskommentierte Bloecke:
-- **00105** RelayControl (nicht relevant fuer MAGNA3)
-- **00110-00112** PID-Parameter (Kp, Ti, Regelrichtung) — **nur fuer Experten!**
+Die YAML enthält weitere Register als auskommentierte Blöcke:
+- **00105** RelayControl (nicht relevant für MAGNA3)
+- **00110-00112** PID-Parameter (Kp, Ti, Regelrichtung) — **nur für Experten!**
 - **00316** Remote-Drucksensor
 - **00320** Remote-Temperatursensor
-- **00352-00356** Waermeenergie (bei externem Temperatursensor)
+- **00352-00356** Wärmeenergie (bei externem Temperatursensor)
 
 ## Anpassungen
 
 ### Strompreis
 
-In der YAML den Wert `0.30` fuer die Energiekostenberechnung anpassen:
+In der YAML den Wert `0.30` für die Energiekostenberechnung anpassen:
 ```yaml
 state: >
   {{ (states('sensor.magna3_energieverbrauch') | float(0) * 0.30) | round(2) }}
@@ -123,7 +123,7 @@ state: >
 
 ### Scan-Intervalle
 
-Die Intervalle sind konservativ gewaehlt (15-300s). Bei Bedarf koennen sie angepasst werden. Zu aggressive Intervalle (< 5s) koennen die Modbus-Kommunikation belasten.
+Die Intervalle sind konservativ gewählt (15-300s). Bei Bedarf können sie angepasst werden. Zu aggressive Intervalle (< 5s) können die Modbus-Kommunikation belasten.
 
 ## Dokumentation
 

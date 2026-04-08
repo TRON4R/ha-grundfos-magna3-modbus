@@ -1,16 +1,16 @@
-<p align="center">
-  <img src="images/logo.png" alt="MAGNA3 Modbus Logo" width="200"/>
-</p>
+<table>
+  <tr>
+    <td><img src="images/logo.png" alt="MAGNA3 Modbus Logo" width="120"/></td>
+    <td>
+      <h1 style="margin:0;">Grundfos MAGNA3</h1>
+      <p style="margin:0;">Home Assistant Modbus TCP</p>
+    </td>
+  </tr>
+</table>
 
-<h1 align="center">Grundfos MAGNA3 — Home Assistant Modbus TCP</h1>
+YAML package to integrate a Grundfos MAGNA3 circulation pump into Home Assistant via Modbus TCP (CIM 500 module).
 
-<p align="center">
-  YAML package to integrate a Grundfos MAGNA3 circulation pump into Home Assistant via Modbus TCP (CIM 500 module).
-</p>
-
-<p align="center">
-  <a href="README.md">Deutsche Version</a>
-</p>
+<a href="README.md">Deutsche Version</a>
 
 ---
 
