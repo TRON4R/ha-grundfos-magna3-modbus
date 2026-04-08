@@ -5,133 +5,133 @@
 
 <br clear="left"/>
 
-**YAML-Package zur Integration einer Grundfos MAGNA3 Heizkreispumpe in Home Assistant via Modbus TCP (CIM 500 Modul).**
+**YAML package to integrate a Grundfos MAGNA3 circulation pump into Home Assistant via Modbus TCP (CIM 500 module).**
 
-<a href="README.en.md">English version</a>
+<a href="README.de.md">Deutsche Version</a>
 
 ---
 
-## Funktionsumfang
+## Features
 
-- **40+ Sensoren**: Förderhöhe, Durchfluss, Drehzahl, Leistung, Temperaturen, Energieverbrauch, Betriebsstunden, PID-Parameter u.v.m.
-- **Status-Bits**: 12 Binary Sensors aus dem Status-Register (Pumpe läuft, Alarm, Warnung, Remote-Modus, ...)
-- **Berechnete Werte**: Effizienz, Energiekosten, Sollwert in Meter, Software-Version (BCD-Dekodierung), Alarm-/Warnungstexte
-- **Steuerung**: Remote Start/Stop, Regelungsart wechseln (AUTOADAPT, FLOWADAPT, Proportionaldruck), Sollwert setzen (% und Meter)
-- **Automationen**: Watchdog, Alarm-Benachrichtigung, Strom-Warnung, bidirektionale Sollwert-Synchronisation
-- **Dashboard-Karte**: Fertige Lovelace-Karte mit Gauges, Steuerbuttons und Statusanzeigen
+- **40+ sensors**: Head pressure, flow rate, speed, power consumption, temperatures, energy usage, operating hours, PID parameters and more
+- **Status bits**: 12 binary sensors decoded from the status register (pump running, alarm, warning, remote mode, ...)
+- **Computed values**: Efficiency, energy cost, setpoint in meters, firmware version (BCD decoding), alarm/warning text
+- **Control**: Remote start/stop, change control mode (AUTOADAPT, FLOWADAPT, proportional pressure), set setpoint (% and meters)
+- **Automations**: Watchdog, alarm notification, high current warning, bidirectional setpoint synchronization
+- **Dashboard card**: Ready-to-use Lovelace card with gauges, control buttons and status indicators
 
-## Entitäten-Qualität
+## Entity Quality
 
-Bei der Definition aller Sensoren und Register wurde besonderer Wert auf korrekte und vollständige HA-Metadaten gelegt: `unique_id`, `device_class`, `state_class`, `unit_of_measurement`, `scale`, `precision` und `scan_interval` sind für jede Entität bestmöglich gesetzt. Dadurch funktionieren Langzeitstatistiken, Energiedashboard-Integration und History-Graphen sofort und ohne manuelle Nacharbeit.
+All sensors and registers have been carefully defined with correct and complete HA metadata: `unique_id`, `device_class`, `state_class`, `unit_of_measurement`, `scale`, `precision` and `scan_interval` are carefully set for each entity to best match its purpose. This ensures that long-term statistics, energy dashboard integration and history graphs work out of the box without manual adjustments.
 
-## Voraussetzungen
+## Requirements
 
-- Home Assistant (beliebige aktuelle Version)
-- Grundfos MAGNA3 Pumpe
-- Grundfos **CIM 500** Kommunikationsmodul (separat erhältlich, wird in die Pumpe eingebaut und stellt die Modbus TCP Schnittstelle bereit)
-- Netzwerkverbindung zwischen HA und CIM 500
+- Home Assistant (any current version)
+- Grundfos MAGNA3 pump
+- Grundfos **CIM 500** communication module (sold separately, installed inside the pump to provide the Modbus TCP interface)
+- Network connection between HA and CIM 500
 
 ## Installation
 
-1. Datei `grundfos_magna3.yaml` nach `/config/packages/` kopieren
-2. In `configuration.yaml` sicherstellen, dass Packages aktiviert sind:
+1. Copy `grundfos_magna3.yaml` to `/config/packages/`
+2. Ensure packages are enabled in `configuration.yaml`:
    ```yaml
    homeassistant:
      packages: !include_dir_named packages
    ```
-3. IP-Adresse des CIM 500 anpassen (Zeile 44 in der YAML):
+3. Update the CIM 500 IP address (line 44 in the YAML):
    ```yaml
-   host: 192.168.2.7  # ← ANPASSEN: IP-Adresse Deines CIM 500
+   host: 192.168.2.7  # ← CHANGE: IP address of your CIM 500
    ```
-4. Home Assistant neu starten
+4. Restart Home Assistant
 
-## Dashboard-Karte (optional)
+## Dashboard Card (optional)
 
 <p align="center">
   <img src="images/dashboard_screenshot.png" alt="MAGNA3 Dashboard" width="400"/>
 </p>
 
-Die Datei `dashboard_card.yaml` enthält eine fertige Lovelace-Karte mit Gauges, Steuerbuttons und Statusanzeigen.
+The file `dashboard_card.yaml` contains a ready-to-use Lovelace card with gauges, control buttons and status indicators.
 
-**Verwendung:** Inhalt von `dashboard_card.yaml` im Dashboard-Editor als manuelle Karte (YAML) einfügen.
+**Usage:** Paste the contents of `dashboard_card.yaml` as a manual card (YAML) in the dashboard editor.
 
-### Erforderliche HACS-Karten
+### Required HACS Cards
 
-Die Dashboard-Karte benötigt folgende HACS Frontend-Erweiterungen:
+The dashboard card requires the following HACS frontend extensions:
 
-| HACS-Karte | Zweck | HACS-Suche |
+| HACS Card | Purpose | HACS Search |
 |---|---|---|
-| [**Vertical Stack In Card**](https://github.com/ofekashery/vertical-stack-in-card) | Äußerer Container ohne Rahmen | `vertical-stack-in-card` |
-| [**card-mod**](https://github.com/thomasloven/lovelace-card-mod) | CSS-Styling (Rahmen entfernen, Farben) | `card-mod` |
-| [**Mushroom**](https://github.com/piitaya/lovelace-mushroom) | Template-Karte für Durchfluss-Status | `mushroom` |
+| [**Vertical Stack In Card**](https://github.com/ofekashery/vertical-stack-in-card) | Outer container without borders | `vertical-stack-in-card` |
+| [**card-mod**](https://github.com/thomasloven/lovelace-card-mod) | CSS styling (remove borders, colors) | `card-mod` |
+| [**Mushroom**](https://github.com/piitaya/lovelace-mushroom) | Template card for flow status | `mushroom` |
 
-Ohne diese Karten wird die Dashboard-Karte nicht korrekt dargestellt. Die Modbus-YAML selbst funktioniert unabhängig davon.
+Without these cards the dashboard card will not render correctly. The Modbus YAML itself works independently.
 
-## Registerübersicht
+## Register Overview
 
-### Messwerte (Read-Only)
+### Measurement Values (Read-Only)
 
-| Register | Sensor | Einheit | Intervall |
+| Register | Sensor | Unit | Interval |
 |---|---|---|---|
-| 00201 | Status-Bits (12 Binary Sensors) | Bitfeld | 30s |
-| 00202 | Prozess-Rückmeldung | % | 30s |
-| 00301 | Förderhöhe | m | 15s |
-| 00302 | Durchfluss | m³/h | 15s |
-| 00303 | Relative Leistung | % | 15s |
-| 00304 | Drehzahl | rpm | 15s |
-| 00305 | Frequenz | Hz | 15s |
-| 00308 | Sollwert (aktuell) | % | 30s |
-| 00309 | Motorstrom | A | 30s |
-| 00310 | DC-Link Spannung | V | 30s |
-| 00312-13 | Leistungsaufnahme | W | 15s |
-| 00321 | Elektronik-Temperatur | K | 15s |
-| 00322 | Medientemperatur | K | 15s |
-| 00326 | Spez. Energieverbrauch | Wh/m³ | 300s |
-| 00327-28 | Betriebsstunden (laufend) | h | 300s |
-| 00329-30 | Betriebsstunden (gesamt) | h | 300s |
-| 00332-33 | Energieverbrauch | kWh | 300s |
-| 00334-35 | Anzahl Starts | - | 300s |
-| 00338 | Sollwert (Benutzer) | % | 15s |
-| 00339 | Differenzdruck | bar | 30s |
-| 00357-58 | Gepumptes Volumen | m³ | 300s |
+| 00201 | Status bits (12 binary sensors) | Bitfield | 30s |
+| 00202 | Process feedback | % | 30s |
+| 00301 | Head pressure | m | 15s |
+| 00302 | Volume flow | m³/h | 15s |
+| 00303 | Relative performance | % | 15s |
+| 00304 | Speed | rpm | 15s |
+| 00305 | Frequency | Hz | 15s |
+| 00308 | Setpoint (current) | % | 30s |
+| 00309 | Motor current | A | 30s |
+| 00310 | DC link voltage | V | 30s |
+| 00312-13 | Power consumption | W | 15s |
+| 00321 | Electronics temperature | K | 15s |
+| 00322 | Medium temperature | K | 15s |
+| 00326 | Specific energy consumption | Wh/m³ | 300s |
+| 00327-28 | Operating hours (running) | h | 300s |
+| 00329-30 | Operating hours (total) | h | 300s |
+| 00332-33 | Energy consumption | kWh | 300s |
+| 00334-35 | Number of starts | - | 300s |
+| 00338 | Setpoint (user) | % | 15s |
+| 00339 | Differential pressure | bar | 30s |
+| 00357-58 | Pumped volume | m³ | 300s |
 
-### Steuerregister (Read-Write)
+### Control Registers (Read-Write)
 
-| Register | Funktion | Werte |
+| Register | Function | Values |
 |---|---|---|
-| 00101 | Control Register | Bit 0: Remote, Bit 1: On/Off, Bit 2: Reset |
-| 00102 | Regelungsart | 6=Proportional, 128=AUTOADAPT, 129=FLOWADAPT |
-| 00104 | Sollwert | 0-10000 (= 0-100%) |
+| 00101 | Control register | Bit 0: Remote, Bit 1: On/Off, Bit 2: Reset |
+| 00102 | Control mode | 6=Proportional, 128=AUTOADAPT, 129=FLOWADAPT |
+| 00104 | Setpoint | 0-10000 (= 0-100%) |
 
-### Optionale Register (auskommentiert)
+### Optional Registers (commented out)
 
-Die YAML enthält weitere Register als auskommentierte Blöcke:
-- **00105** RelayControl (nicht relevant für MAGNA3)
-- **00110-00112** PID-Parameter (Kp, Ti, Regelrichtung) — **nur für Experten!**
-- **00316** Remote-Drucksensor
-- **00320** Remote-Temperatursensor
-- **00352-00356** Wärmeenergie (bei externem Temperatursensor)
+The YAML contains additional registers as commented-out blocks:
+- **00105** RelayControl (not relevant for MAGNA3)
+- **00110-00112** PID parameters (Kp, Ti, control direction) — **experts only!**
+- **00316** Remote pressure sensor
+- **00320** Remote temperature sensor
+- **00352-00356** Heat energy (with external temperature sensor)
 
-## Anpassungen
+## Customization
 
-### Strompreis
+### Electricity Price
 
-In der YAML den Wert `0.30` für die Energiekostenberechnung anpassen:
+Adjust the value `0.30` for energy cost calculation in the YAML:
 ```yaml
 state: >
   {{ (states('sensor.magna3_energieverbrauch') | float(0) * 0.30) | round(2) }}
-  # ↑ Strompreis anpassen!
+  # ↑ Adjust electricity price!
 ```
 
-### Scan-Intervalle
+### Scan Intervals
 
-Die Intervalle sind konservativ gewählt (15-300s). Bei Bedarf können sie angepasst werden. Zu aggressive Intervalle (< 5s) können die Modbus-Kommunikation belasten.
+Intervals are conservatively set (15-300s). They can be adjusted as needed. Overly aggressive intervals (< 5s) may strain the Modbus communication.
 
-## Dokumentation
+## Documentation
 
-Basiert auf dem offiziellen Grundfos Modbus-Dokument:
+Based on the official Grundfos Modbus document:
 **98367081 05.2025 — Modbus for Grundfos pumps**
 
-## Lizenz
+## License
 
 [MIT](LICENSE)
