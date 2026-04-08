@@ -1,6 +1,6 @@
 <img src="images/logo.png" alt="MAGNA3 Modbus Logo" width="120" align="left" style="margin-right:16px;"/>
 
-### Grundfos MAGNA3
+## Grundfos MAGNA3
 **Home Assistant Modbus TCP**
 
 <br clear="left"/>
