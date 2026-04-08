@@ -20,10 +20,15 @@
 - **Automations**: Watchdog, alarm notification, high current warning, bidirectional setpoint synchronization
 - **Dashboard card**: Ready-to-use Lovelace card with gauges, control buttons and status indicators
 
+## Entity Quality
+
+All sensors and registers have been carefully defined with correct and complete HA metadata: `unique_id`, `device_class`, `state_class`, `unit_of_measurement`, `scale`, `precision` and `scan_interval` are individually set for each entity. This ensures that long-term statistics, energy dashboard integration and history graphs work out of the box without manual adjustments.
+
 ## Requirements
 
 - Home Assistant (any current version)
-- Grundfos MAGNA3 pump with **CIM 500** communication module (Modbus TCP)
+- Grundfos MAGNA3 pump
+- Grundfos **CIM 500** communication module (sold separately, installed inside the pump to provide the Modbus TCP interface)
 - Network connection between HA and CIM 500
 
 ## Installation
