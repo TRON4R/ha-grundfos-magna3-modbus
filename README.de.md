@@ -134,6 +134,10 @@ Die Intervalle sind konservativ gewählt (15-300s). Bei Bedarf können sie angep
 Basiert auf dem offiziellen Grundfos Modbus-Dokument:
 [**98367081 05.2025 — Modbus for Grundfos pumps** (PDF)](https://api.grundfos.com/literature/Grundfosliterature-6012947.pdf)
 
+## Mitmachen
+
+Fragen, Fehlerberichte und Verbesserungsvorschläge sind jederzeit willkommen! Nutze die [GitHub Discussions](https://github.com/TRON4R/ha-grundfos-magna3-modbus/discussions) oder erstelle ein [Issue](https://github.com/TRON4R/ha-grundfos-magna3-modbus/issues).
+
 ## Lizenz
 
 [MIT](LICENSE)
