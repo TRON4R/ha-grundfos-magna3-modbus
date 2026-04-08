@@ -132,7 +132,7 @@ Intervals are conservatively set (15-300s). They can be adjusted as needed. Over
 ## Documentation
 
 Based on the official Grundfos Modbus document:
-**98367081 05.2025 — Modbus for Grundfos pumps**
+[**98367081 05.2025 — Modbus for Grundfos pumps** (PDF)](https://api.grundfos.com/literature/Grundfosliterature-6012947.pdf)
 
 ## License
 

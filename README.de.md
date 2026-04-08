@@ -132,7 +132,7 @@ Die Intervalle sind konservativ gewählt (15-300s). Bei Bedarf können sie angep
 ## Dokumentation
 
 Basiert auf dem offiziellen Grundfos Modbus-Dokument:
-**98367081 05.2025 — Modbus for Grundfos pumps**
+[**98367081 05.2025 — Modbus for Grundfos pumps** (PDF)](https://api.grundfos.com/literature/Grundfosliterature-6012947.pdf)
 
 ## Lizenz
 
