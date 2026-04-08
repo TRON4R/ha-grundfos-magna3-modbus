@@ -247,7 +247,7 @@ modbus:
         address: 209  # Register 00210
         input_type: input
         data_type: uint16
-        # kein device_class angegeben, da hier die Unit abhängt, davon was in Register 209 steht
+        # kein device_class angegeben, da hier die Unit davon abhängt, was in Register 209 steht
         # kein state_class: measurement, weil ein Mindestwert
         slave: 1
         scan_interval: 3600
@@ -257,7 +257,7 @@ modbus:
         address: 210  # Register 00211
         input_type: input
         data_type: uint16
-        # kein device_class angegeben, da hier die Unit abhängt, davon was in Register 209 steht
+        # kein device_class angegeben, da hier die Unit davon abhängt, was in Register 209 steht
         # kein state_class: measurement, weil ein Maximalwert
         slave: 1
         scan_interval: 3600
