@@ -1,0 +1,270 @@
+type: custom:vertical-stack-in-card
+cards:
+  - type: heading
+    heading: Grundfos MAGNA3 Heizkreispumpe
+    heading_style: title
+    icon: mdi:pump
+    badges:
+      - type: entity
+        entity: sensor.magna3_regelungsart
+    card_mod:
+      style: |
+        ha-icon {
+          color: red !important;
+        }
+  - type: horizontal-stack
+    cards:
+      - type: gauge
+        entity: sensor.magna3_forderhohe
+        name: Förderhöhe
+        unit: m
+        min: 0
+        max: 10
+        severity:
+          green: 0
+          yellow: 6
+          red: 8
+        needle: true
+        card_mod:
+          style: |
+            ha-card {
+              border: none !important;
+              box-shadow: none !important;
+            }
+      - type: gauge
+        entity: sensor.magna3_leistungsaufnahme
+        name: Leistung
+        unit: W
+        min: 0
+        max: 153
+        needle: true
+        severity:
+          green: 0
+          yellow: 80
+          red: 120
+        card_mod:
+          style: |
+            ha-card {
+              border: none !important;
+              box-shadow: none !important;
+            }
+      - type: gauge
+        entity: sensor.magna3_drehzahl
+        name: Drehzahl
+        unit: rpm
+        min: 0
+        max: 4530
+        severity:
+          green: 0
+          yellow: 3000
+          red: 4000
+        needle: true
+        card_mod:
+          style: |
+            ha-card {
+              border: none !important;
+              box-shadow: none !important;
+            }
+  - type: horizontal-stack
+    cards:
+      - type: gauge
+        entity: sensor.magna3_durchfluss_l_h
+        name: Durchfluss
+        unit: L/h
+        min: 0
+        max: 5500
+        severity:
+          green: 0
+          yellow: 3000
+          red: 4000
+        needle: true
+        card_mod:
+          style: |
+            ha-card {
+              border: none !important;
+              box-shadow: none !important;
+            }
+      - type: gauge
+        entity: sensor.magna3_sollwert_aktuell
+        unit: "%"
+        min: 0
+        max: 100
+        severity:
+          green: 0
+          yellow: 80
+          red: 90
+        needle: true
+        name: Soll Regelung
+        card_mod:
+          style: |
+            ha-card {
+              border: none !important;
+              box-shadow: none !important;
+            }
+      - type: gauge
+        entity: sensor.magna3_medientemperatur
+        unit: °C
+        min: 0
+        max: 65
+        severity:
+          green: 0
+          yellow: 50
+          red: 60
+        needle: true
+        name: Wassertemperatur
+        card_mod:
+          style: |
+            ha-card {
+              border: none !important;
+              box-shadow: none !important;
+            }
+  - type: horizontal-stack
+    cards:
+      - type: custom:mushroom-template-card
+        primary: Durchfluss ⇧
+        secondary: Schätzung {{ states(entity) }}
+        multiline_secondary: true
+        icon: mdi:chart-bell-curve
+        entity: sensor.magna3_durchfluss_status_text
+        tap_action:
+          action: more-info
+        color: |
+          {% if is_state(entity, 'im Messbereich') %}
+            green
+          {% else %}
+            amber
+          {% endif %}
+        features_position: bottom
+        card_mod:
+          style: |
+            ha-card {
+              border: none !important;
+              box-shadow: none !important;
+            }
+      - type: gauge
+        entity: sensor.magna3_sollwert_benutzer
+        unit: "%"
+        min: 0
+        max: 100
+        severity:
+          green: 0
+          yellow: 80
+          red: 90
+        needle: true
+        name: Sollwert Benutzer
+        card_mod:
+          style: |
+            ha-card {
+              border: none !important;
+              box-shadow: none !important;
+            }
+      - type: gauge
+        entity: sensor.magna3_sollwert_meter
+        unit: m
+        min: 0
+        max: 10
+        severity:
+          green: 0
+          yellow: 6
+          red: 8
+        needle: true
+        name: Sollwert Benutzer
+        card_mod:
+          style: |
+            ha-card {
+              border: none !important;
+              box-shadow: none !important;
+            }
+  - type: entities
+    title: Einstellungen
+    entities:
+      - entity: input_number.magna3_sollwert_prozent
+        name: Sollwert (%)
+      - entity: input_number.magna3_sollwert_meter
+        name: Sollwert (m)
+      - entity: sensor.magna3_steuerquelle
+      - entity: binary_sensor.magna3_remote_modus
+  - type: horizontal-stack
+    cards:
+      - show_name: true
+        show_icon: true
+        type: button
+        name: Remote Start
+        icon: mdi:play
+        tap_action:
+          action: perform-action
+          perform_action: script.magna3_start_remote
+        card_mod:
+          style: |
+            ha-card {
+              margin-bottom: 10px;
+            }
+      - show_name: true
+        show_icon: true
+        type: button
+        name: → Lokal
+        icon: mdi:hand-back-right
+        tap_action:
+          action: perform-action
+          perform_action: script.magna3_to_local
+        card_mod:
+          style: |
+            ha-card {
+              margin-bottom: 10px;
+            }
+      - type: button
+        name: Remote Stop
+        icon: mdi:stop
+        tap_action:
+          action: perform-action
+          perform_action: script.magna3_stop_remote
+        card_mod:
+          style: |
+            ha-card {
+              margin-bottom: 10px;
+            }
+  - type: markdown
+    content: " "
+    card_mod:
+      style: |
+        ha-card {
+          border: none !important;
+          box-shadow: none !important;
+          background: none !important;
+          padding: 4px 0 !important;
+          margin: 0 !important;
+          min-height: 0 !important;
+          overflow: hidden;
+        }
+        ha-markdown {
+          padding: 0 !important;
+        }
+  - type: horizontal-stack
+    cards:
+      - show_name: true
+        show_icon: true
+        type: button
+        name: Proportionaldruck
+        icon: mdi:gauge
+        tap_action:
+          action: perform-action
+          perform_action: script.magna3_enable_proportional
+      - show_name: true
+        show_icon: true
+        type: button
+        name: AutoAdapt
+        icon: mdi:auto-fix
+        tap_action:
+          action: perform-action
+          perform_action: script.magna3_enable_autoadapt
+      - type: button
+        name: FlowAdapt
+        icon: mdi:waves
+        tap_action:
+          action: perform-action
+          perform_action: script.magna3_enable_flowadapt
+card_mod:
+  style: |
+    ha-card > :first-child {
+      padding-top: 12px;
+    }
