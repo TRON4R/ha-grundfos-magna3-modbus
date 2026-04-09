@@ -114,11 +114,11 @@ The YAML contains additional registers as commented-out blocks:
 - **00320** Remote temperature sensor
 - **00352-00356** Heat energy (with external temperature sensor)
 
-## Customization
+## Individual Customization
 
 ### Electricity Price
 
-Adjust the value `0.30` for energy cost calculation in the YAML:
+The value `0.30` for the energy cost calculation should be adjusted to your own electricity price:
 ```yaml
 state: >
   {{ (states('sensor.magna3_energy_consumption') | float(0) * 0.30) | round(2) }}

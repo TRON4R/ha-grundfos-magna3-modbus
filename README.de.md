@@ -114,11 +114,11 @@ Die YAML enthält weitere Register als auskommentierte Blöcke:
 - **00320** Remote-Temperatursensor
 - **00352-00356** Wärmeenergie (bei externem Temperatursensor)
 
-## Anpassungen
+## Individuelle Anpassungen
 
 ### Strompreis
 
-In der YAML den Wert `0.30` für die Energiekostenberechnung anpassen:
+In der YAML sollte der Wert `0.30` für die Energiekostenberechnung dem eigenen Strompreis angepasst werden:
 ```yaml
 state: >
   {{ (states('sensor.magna3_energieverbrauch') | float(0) * 0.30) | round(2) }}
