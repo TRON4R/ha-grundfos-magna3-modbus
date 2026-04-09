@@ -378,7 +378,7 @@ modbus:
         data_type: uint16
         slave: 1
         scan_interval: 30
-        # Werte: 1=Display, 2=Bus, 3=GO App, 4=Digtal Input, 5=Off Button
+        # Values: 1=Display, 2=Bus, 3=GO App, 4=Digital Input, 5=OFF Button
 
       #
       # --- Register 00301-00365: Pump Data (Measurements) --- all registers are read-only (RO)
@@ -866,7 +866,7 @@ template:
           {% elif mode == 3 %}Constant Head
           {% elif mode == 4 %}Constant Pressure
           {% elif mode == 5 %}Const. Diff. Pressure
-          {% elif mode == 6 %}Proportionaldruck
+          {% elif mode == 6 %}Proportional Pressure
           {% elif mode == 7 %}Constant Flow
           {% elif mode == 8 %}Constant Temperature
           {% elif mode == 10 %}Constant Level
@@ -980,7 +980,7 @@ template:
         unique_id: magna3_control_source_text
         state: >
           {% set source = states('sensor.magna3_control_source_code') | int(0) %}
-          {% if source == 1 %}Pumpendisplay
+          {% if source == 1 %}Display
           {% elif source == 2 %}Modbus/TCP
           {% elif source == 3 %}Grundfos GO App
           {% elif source == 4 %}Digital Input
@@ -1408,7 +1408,7 @@ automation:
     condition:
       - condition: template
         value_template: >
-          {{ (now() - (states.sensor.magna3_drehzahl.last_updated | default(now()))).total_seconds() < 120 }}
+          {{ (now() - (states.sensor.magna3_speed.last_updated | default(now()))).total_seconds() < 120 }}
     action:
       - action: persistent_notification.create
         data:

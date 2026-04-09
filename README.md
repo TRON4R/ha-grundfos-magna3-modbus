@@ -14,7 +14,7 @@
 ## Features
 
 - **40+ sensors**: Head pressure, flow rate, speed, power consumption, temperatures, energy usage, operating hours, PID parameters and more
-- **Status bits**: 12 binary sensors decoded from the status register (pump running, alarm, warning, remote mode, ...)
+- **Status bits**: 11 binary sensors decoded from the status register (pump running, alarm, warning, remote mode, ...)
 - **Computed values**: Efficiency, energy cost, setpoint in meters, firmware version (BCD decoding), alarm/warning text
 - **Control**: Remote start/stop, change control mode (AUTOADAPT, FLOWADAPT, proportional pressure), set setpoint (% and meters)
 - **Automations**: Watchdog, alarm notification, high current warning, bidirectional setpoint synchronization
@@ -75,7 +75,7 @@ Without these cards the dashboard card will not render correctly. The Modbus YAM
 
 | Register | Sensor | Unit | Interval |
 |---|---|---|---|
-| 00201 | Status bits (12 binary sensors) | Bitfield | 30s |
+| 00201 | Status bits (11 binary sensors) | Bitfield | 30s |
 | 00202 | Process feedback | % | 30s |
 | 00301 | Head pressure | m | 15s |
 | 00302 | Volume flow | m³/h | 15s |

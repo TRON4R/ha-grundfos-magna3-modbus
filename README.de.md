@@ -14,7 +14,7 @@
 ## Funktionsumfang
 
 - **40+ Sensoren**: Förderhöhe, Durchfluss, Drehzahl, Leistung, Temperaturen, Energieverbrauch, Betriebsstunden, PID-Parameter u.v.m.
-- **Status-Bits**: 12 Binary Sensors aus dem Status-Register (Pumpe läuft, Alarm, Warnung, Remote-Modus, ...)
+- **Status-Bits**: 11 Binary Sensors aus dem Status-Register (Pumpe läuft, Alarm, Warnung, Remote-Modus, ...)
 - **Berechnete Werte**: Effizienz, Energiekosten, Sollwert in Meter, Software-Version (BCD-Dekodierung), Alarm-/Warnungstexte
 - **Steuerung**: Remote Start/Stop, Regelungsart wechseln (AUTOADAPT, FLOWADAPT, Proportionaldruck), Sollwert setzen (% und Meter)
 - **Automationen**: Watchdog, Alarm-Benachrichtigung, Strom-Warnung, bidirektionale Sollwert-Synchronisation
@@ -75,7 +75,7 @@ Ohne diese Karten wird die Dashboard-Karte nicht korrekt dargestellt. Die Modbus
 
 | Register | Sensor | Einheit | Intervall |
 |---|---|---|---|
-| 00201 | Status-Bits (12 Binary Sensors) | Bitfeld | 30s |
+| 00201 | Status-Bits (11 Binary Sensors) | Bitfeld | 30s |
 | 00202 | Prozess-Rückmeldung | % | 30s |
 | 00301 | Förderhöhe | m | 15s |
 | 00302 | Durchfluss | m³/h | 15s |
