@@ -168,7 +168,7 @@ cards:
           yellow: 6
           red: 8
         needle: true
-        name: Actual Setpoint (m)
+        name: User Setpoint
         card_mod:
           style: |
             ha-card {
