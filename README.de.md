@@ -33,7 +33,7 @@ Bei der Definition aller Sensoren und Register wurde besonderer Wert auf korrekt
 
 ## Installation
 
-1. Datei `grundfos_magna3.yaml` nach `/config/packages/` kopieren
+1. Datei `grundfos_magna3.de.yaml` nach `/config/packages/` kopieren
 2. In `configuration.yaml` sicherstellen, dass Packages aktiviert sind:
    ```yaml
    homeassistant:
@@ -53,9 +53,9 @@ Bei der Definition aller Sensoren und Register wurde besonderer Wert auf korrekt
   <img src="images/dashboard_screenshot.png" alt="MAGNA3 Dashboard" width="400"/>
 </p>
 
-Die Datei `dashboard_card.yaml` enthält eine fertige Lovelace-Karte mit Gauges, Steuerbuttons und Statusanzeigen.
+Die Datei `dashboard_card.de.yaml` enthält eine fertige Lovelace-Karte mit Gauges, Steuerbuttons und Statusanzeigen.
 
-**Verwendung:** Inhalt von `dashboard_card.yaml` im Dashboard-Editor als manuelle Karte (YAML) einfügen.
+**Verwendung:** Inhalt von `dashboard_card.de.yaml` im Dashboard-Editor als manuelle Karte (YAML) einfügen.
 
 ### Erforderliche HACS-Karten
 

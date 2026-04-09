@@ -86,8 +86,8 @@ Without these cards the dashboard card will not render correctly. The Modbus YAM
 | 00309 | Motor current | A | 30s |
 | 00310 | DC link voltage | V | 30s |
 | 00312-13 | Power consumption | W | 15s |
-| 00321 | Electronics temperature | K | 15s |
-| 00322 | Medium temperature | K | 15s |
+| 00321 | Electronic Temp | K | 15s |
+| 00322 | Pump Liquid Temp | K | 15s |
 | 00326 | Specific energy consumption | Wh/m³ | 300s |
 | 00327-28 | Operating hours (running) | h | 300s |
 | 00329-30 | Operating hours (total) | h | 300s |
@@ -121,7 +121,7 @@ The YAML contains additional registers as commented-out blocks:
 Adjust the value `0.30` for energy cost calculation in the YAML:
 ```yaml
 state: >
-  {{ (states('sensor.magna3_energieverbrauch') | float(0) * 0.30) | round(2) }}
+  {{ (states('sensor.magna3_energy_consumption') | float(0) * 0.30) | round(2) }}
   # ↑ Adjust electricity price!
 ```
 
