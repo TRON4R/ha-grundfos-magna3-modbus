@@ -50,7 +50,7 @@ Bei der Definition aller Sensoren und Register wurde besonderer Wert auf korrekt
 ## Dashboard-Karte (optional)
 
 <p align="center">
-  <img src="images/dashboard_screenshot.png" alt="MAGNA3 Dashboard" width="400"/>
+  <img src="images/dashboard_screenshot.png" alt="MAGNA3 Dashboard"/>
 </p>
 
 Die Datei `dashboard_card.de.yaml` enthält eine fertige Lovelace-Karte mit Gauges, Steuerbuttons und Statusanzeigen.

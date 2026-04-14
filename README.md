@@ -50,7 +50,7 @@ All sensors and registers have been carefully defined with correct and complete 
 ## Dashboard Card (optional)
 
 <p align="center">
-  <img src="images/dashboard_screenshot.png" alt="MAGNA3 Dashboard" width="400"/>
+  <img src="images/dashboard_screenshot.png" alt="MAGNA3 Dashboard"/>
 </p>
 
 The file `dashboard_card.yaml` contains a ready-to-use Lovelace card with gauges, control buttons and status indicators.
