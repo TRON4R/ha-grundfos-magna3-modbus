@@ -186,83 +186,357 @@ cards:
       - entity: binary_sensor.magna3_remote_mode
   - type: horizontal-stack
     cards:
-      - show_name: true
-        show_icon: true
-        type: button
-        name: Remote Start
+      - type: custom:button-card
+        name: Start HA Control
         icon: mdi:play
+        show_name: true
+        show_icon: true
+        color: "#44739E"
         tap_action:
           action: perform-action
           perform_action: script.magna3_start_remote
-        card_mod:
-          style: |
-            ha-card {
-              margin-bottom: 10px;
-            }
-      - show_name: true
+        tooltip:
+          content: >-
+            HA takes over via Modbus. Pump runs (or starts).
+            Setpoint slider in HA now controls the pump.
+          placement: bottom
+          arrow: true
+        styles:
+          card:
+            - padding: 6px
+            - height: 110px
+          grid:
+            - grid-template-areas: '"i" "n"'
+            - grid-template-columns: 1fr
+            - grid-template-rows: 1fr auto
+            - row-gap: 2px
+          name:
+            - white-space: pre-line
+            - font-size: var(--paper-font-body1_-_font-size, 14px)
+            - line-height: 1.15
+          img_cell:
+            - align-self: end
+            - justify-self: center
+            - overflow: visible
+          icon:
+            - width: 48px
+            - height: 48px
+            - "--mdc-icon-size": 48px
+            - transform: scale(1.7)
+      - type: custom:button-card
+        name: |-
+          Save Settings &
+          End HA Control
+        icon: mdi:content-save-move
+        show_name: true
         show_icon: true
-        type: button
-        name: → Local
+        color: "#44739E"
+        tap_action:
+          action: perform-action
+          perform_action: script.magna3_to_local_copy
+        tooltip:
+          content: >-
+            Hands control back to the pump and stores the current setpoint,
+            control mode, and on/off state in the pump's EEPROM.
+            Use after changing settings via HA so they survive a power cycle.
+          placement: bottom
+          arrow: true
+        styles:
+          card:
+            - padding: 6px
+            - height: 110px
+          grid:
+            - grid-template-areas: '"i" "n"'
+            - grid-template-columns: 1fr
+            - grid-template-rows: 1fr auto
+            - row-gap: 2px
+          name:
+            - white-space: pre-line
+            - font-size: var(--paper-font-body1_-_font-size, 14px)
+            - line-height: 1.15
+          img_cell:
+            - align-self: end
+            - justify-self: center
+            - overflow: visible
+          icon:
+            - width: 48px
+            - height: 48px
+            - "--mdc-icon-size": 48px
+            - transform: scale(1.3)
+      - type: custom:button-card
+        name: End HA Control
         icon: mdi:hand-back-right
+        show_name: true
+        show_icon: true
+        color: "#44739E"
         tap_action:
           action: perform-action
           perform_action: script.magna3_to_local
-        card_mod:
-          style: |
-            ha-card {
-              margin-bottom: 10px;
-            }
-      - type: button
-        name: Remote Stop
+        tooltip:
+          content: >-
+            Hands control back to the pump. The current bus setpoint is
+            DISCARDED — the pump reverts to its last saved (EEPROM) setpoint.
+            Use to abort an HA session without persisting changes.
+          placement: bottom
+          arrow: true
+        styles:
+          card:
+            - padding: 6px
+            - height: 110px
+          grid:
+            - grid-template-areas: '"i" "n"'
+            - grid-template-columns: 1fr
+            - grid-template-rows: 1fr auto
+            - row-gap: 2px
+          name:
+            - white-space: pre-line
+            - font-size: var(--paper-font-body1_-_font-size, 14px)
+            - line-height: 1.15
+          img_cell:
+            - align-self: end
+            - justify-self: center
+            - overflow: visible
+          icon:
+            - width: 48px
+            - height: 48px
+            - "--mdc-icon-size": 48px
+            - transform: scale(1.3)
+  - type: horizontal-stack
+    cards:
+      - type: custom:button-card
+        name: |-
+          Stop Pump
+          (keep HA Control)
         icon: mdi:stop
+        show_name: true
+        show_icon: true
+        color: "#44739E"
         tap_action:
           action: perform-action
           perform_action: script.magna3_stop_remote
-        card_mod:
-          style: |
-            ha-card {
-              margin-bottom: 10px;
-            }
-  - type: markdown
-    content: " "
-    card_mod:
-      style: |
-        ha-card {
-          border: none !important;
-          box-shadow: none !important;
-          background: none !important;
-          padding: 4px 0 !important;
-          margin: 0 !important;
-          min-height: 0 !important;
-          overflow: hidden;
-        }
-        ha-markdown {
-          padding: 0 !important;
-        }
-  - type: horizontal-stack
-    cards:
-      - show_name: true
-        show_icon: true
-        type: button
+        tooltip:
+          content: >-
+            Pump turns off, but HA stays in control via Modbus.
+            Resume operation with "Start HA Control".
+          placement: bottom
+          arrow: true
+        styles:
+          card:
+            - padding: 6px
+            - height: 110px
+            - margin-top: 8px
+          grid:
+            - grid-template-areas: '"i" "n"'
+            - grid-template-columns: 1fr
+            - grid-template-rows: 1fr auto
+            - row-gap: 2px
+          name:
+            - white-space: pre-line
+            - font-size: var(--paper-font-body1_-_font-size, 14px)
+            - line-height: 1.15
+          img_cell:
+            - align-self: end
+            - justify-self: center
+            - overflow: visible
+          icon:
+            - width: 48px
+            - height: 48px
+            - "--mdc-icon-size": 48px
+            - transform: scale(1.7)
+      - type: custom:button-card
         name: Proportional Pressure
-        icon: mdi:gauge
+        icon: mdi:function-variant
+        show_name: true
+        show_icon: true
+        color: "#44739E"
         tap_action:
           action: perform-action
           perform_action: script.magna3_enable_proportional
-      - show_name: true
+        tooltip:
+          content: >-
+            Pump adjusts head proportionally to flow demand.
+            Pressure drops at low flow (saves energy) and rises at high flow.
+            Standard for radiator heating with thermostatic valves.
+          placement: bottom
+          arrow: true
+        styles:
+          card:
+            - padding: 6px
+            - height: 110px
+            - margin-top: 8px
+          grid:
+            - grid-template-areas: '"i" "n"'
+            - grid-template-columns: 1fr
+            - grid-template-rows: 1fr auto
+            - row-gap: 2px
+          name:
+            - white-space: pre-line
+            - font-size: var(--paper-font-body1_-_font-size, 14px)
+            - line-height: 1.15
+          img_cell:
+            - align-self: end
+            - justify-self: center
+            - overflow: visible
+          icon:
+            - width: 48px
+            - height: 48px
+            - "--mdc-icon-size": 48px
+            - transform: scale(1.3)
+      - type: custom:button-card
+        name: Constant Pressure
+        icon: mdi:approximately-equal
+        show_name: true
         show_icon: true
-        type: button
+        color: "#44739E"
+        tap_action:
+          action: perform-action
+          perform_action: script.magna3_enable_constant_pressure
+        tooltip:
+          content: >-
+            Pump maintains a constant differential head regardless of flow.
+            Standard for underfloor heating or systems requiring a stable pressure setpoint.
+          placement: bottom
+          arrow: true
+        styles:
+          card:
+            - padding: 6px
+            - height: 110px
+            - margin-top: 8px
+          grid:
+            - grid-template-areas: '"i" "n"'
+            - grid-template-columns: 1fr
+            - grid-template-rows: 1fr auto
+            - row-gap: 2px
+          name:
+            - white-space: pre-line
+            - font-size: var(--paper-font-body1_-_font-size, 14px)
+            - line-height: 1.15
+          img_cell:
+            - align-self: end
+            - justify-self: center
+            - overflow: visible
+          icon:
+            - width: 48px
+            - height: 48px
+            - "--mdc-icon-size": 48px
+            - transform: scale(1.3)
+  - type: horizontal-stack
+    cards:
+      - type: custom:button-card
         name: AutoAdapt
         icon: mdi:auto-fix
+        show_name: true
+        show_icon: true
+        color: "#44739E"
         tap_action:
           action: perform-action
           perform_action: script.magna3_enable_autoadapt
-      - type: button
+        tooltip:
+          content: >-
+            Pump learns the system's hydraulics over time and adapts automatically.
+            Factory default. Best choice when in doubt.
+          placement: bottom
+          arrow: true
+        styles:
+          card:
+            - padding: 6px
+            - height: 110px
+            - margin-top: 8px
+          grid:
+            - grid-template-areas: '"i" "n"'
+            - grid-template-columns: 1fr
+            - grid-template-rows: 1fr auto
+            - row-gap: 2px
+          name:
+            - white-space: pre-line
+            - font-size: var(--paper-font-body1_-_font-size, 14px)
+            - line-height: 1.15
+          img_cell:
+            - align-self: end
+            - justify-self: center
+            - overflow: visible
+          icon:
+            - width: 48px
+            - height: 48px
+            - "--mdc-icon-size": 48px
+            - transform: scale(1.5)
+      - type: custom:button-card
         name: FlowAdapt
         icon: mdi:waves
+        show_name: true
+        show_icon: true
+        color: "#44739E"
         tap_action:
           action: perform-action
           perform_action: script.magna3_enable_flowadapt
+        tooltip:
+          content: >-
+            Combines AutoAdapt with a maximum flow limit (FLOWLIMIT).
+            Use when flow must be capped to avoid noise or wear.
+          placement: bottom
+          arrow: true
+        styles:
+          card:
+            - padding: 6px
+            - height: 110px
+            - margin-top: 8px
+          grid:
+            - grid-template-areas: '"i" "n"'
+            - grid-template-columns: 1fr
+            - grid-template-rows: 1fr auto
+            - row-gap: 2px
+          name:
+            - white-space: pre-line
+            - font-size: var(--paper-font-body1_-_font-size, 14px)
+            - line-height: 1.15
+          img_cell:
+            - align-self: end
+            - justify-self: center
+            - overflow: visible
+          icon:
+            - width: 48px
+            - height: 48px
+            - "--mdc-icon-size": 48px
+            - transform: scale(1.5)
+      - type: custom:button-card
+        name: Reset Alarm
+        icon: mdi:alert-circle-check
+        show_name: true
+        show_icon: true
+        color: "#44739E"
+        tap_action:
+          action: perform-action
+          perform_action: script.magna3_reset_alarm
+        tooltip:
+          content: >-
+            Clears active pump alarms (rising-edge trigger on Reg 00101 bit 2).
+            Side effect: switches the pump into HA control.
+            Use only after fixing the underlying fault.
+          placement: bottom
+          arrow: true
+        styles:
+          card:
+            - padding: 6px
+            - height: 110px
+            - margin-top: 8px
+          grid:
+            - grid-template-areas: '"i" "n"'
+            - grid-template-columns: 1fr
+            - grid-template-rows: 1fr auto
+            - row-gap: 2px
+          name:
+            - white-space: pre-line
+            - font-size: var(--paper-font-body1_-_font-size, 14px)
+            - line-height: 1.15
+          img_cell:
+            - align-self: end
+            - justify-self: center
+            - overflow: visible
+          icon:
+            - width: 48px
+            - height: 48px
+            - "--mdc-icon-size": 48px
+            - transform: scale(1.3)
 card_mod:
   style: |
     ha-card > :first-child {

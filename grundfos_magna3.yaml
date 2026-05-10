@@ -1245,7 +1245,7 @@ script:
           message: "MAGNA3 was stopped (remote active)"
           title: "MAGNA3"
   
-  # Switch to local
+  # Switch to local (discard bus setpoint, pump reverts to stored EEPROM setpoint)
   magna3_to_local:
     alias: "MAGNA3: Switch to Local"
     sequence:
@@ -1260,7 +1260,37 @@ script:
         data:
           message: "MAGNA3 switched to local control"
           title: "MAGNA3"
-  
+
+  # Switch to local AND copy current bus setpoint into pump EEPROM.
+  # Mechanism per Grundfos doc 98367081 (reg 00101 bit 4 "CopyToLocal"):
+  # Control Context (mode, op-mode, on/off, setpoint) is copied from remote
+  # to local on the Remote->Local transition when bit 4 is set.
+  # Single write 3 -> 16 satisfies both conditions atomically:
+  #   bit 0 falls 1->0 (Remote->Local edge) AND bit 4 = 1 in the same update.
+  # Verify via binary_sensor.magna3_copy_to_local (reg 00201 bit 1) after click.
+  # If a specific firmware ignores this, fall back to the two-step variant
+  # at the bottom of this script (commented out).
+  magna3_to_local_copy:
+    alias: "MAGNA3: Switch to Local (adopt setpoint)"
+    sequence:
+      - action: modbus.write_register
+        data:
+          hub: Grundfos_MAGNA3
+          address: 100  # Register 00101
+          slave: 1
+          value: 16  # Local(0) + CopyToLocal(1)
+      - delay: 2
+      - action: persistent_notification.create
+        data:
+          message: "MAGNA3 switched to local — current setpoint adopted"
+          title: "MAGNA3"
+      # --- Fallback (only if single-write variant proves unreliable) ---
+      # - action: modbus.write_register
+      #   data: { hub: Grundfos_MAGNA3, address: 100, slave: 1, value: 19 }   # arm bit 4 while still Remote
+      # - delay: { milliseconds: 500 }
+      # - action: modbus.write_register
+      #   data: { hub: Grundfos_MAGNA3, address: 100, slave: 1, value: 16 }   # Remote->Local edge
+
   # Alarm Reset
   magna3_reset_alarm:
     alias: "MAGNA3: Reset Alarm"
@@ -1314,6 +1344,18 @@ script:
       - action: persistent_notification.create
         data:
           message: "Control mode: Proportional Pressure"
+          title: "MAGNA3"
+
+  # Enable constant pressure
+  magna3_enable_constant_pressure:
+    alias: "MAGNA3: Enable Constant Pressure"
+    sequence:
+      - action: script.magna3_set_control_mode
+        data:
+          mode: 4
+      - action: persistent_notification.create
+        data:
+          message: "Control mode: Constant Pressure"
           title: "MAGNA3"
   
   # --- Optional: Set FLOWLIMIT (Register 00106) ---

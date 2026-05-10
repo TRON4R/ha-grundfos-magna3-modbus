@@ -1,5 +1,23 @@
 # Changelog
 
+## v4 (2026-05-10)
+
+- Neues Script `magna3_to_local_copy`: Behebt das Zurückspringen der Pumpe auf den alten Setpoint nach Rückgabe der Steuerung an die Pumpe. Schreibt in einem einzigen Write Reg 00101 = 16 (Local + CopyToLocal), sodass beim Remote→Local-Wechsel der Bus-Setpoint, die Regelungsart und der On/Off-Zustand ins Pumpen-EEPROM kopiert werden (laut Grundfos-Dok 98367081, Reg 00101 Bit 4 „CopyToLocal")
+- Neues Script `magna3_enable_constant_pressure`: aktiviert die Regelungsart Konstantdruck (Code 4)
+- Dashboard neu aufgebaut mit `custom:button-card` (HACS-Abhängigkeit):
+  - Native Tooltips auf allen 9 Buttons (nur Desktop-Hover; auf Touchgeräten nicht unterstützt)
+  - Native mehrzeilige Button-Beschriftungen
+  - Zuverlässiges Icon-Sizing via `transform: scale()` (Workaround für ha-icon SVG-viewBox-Eigenheiten)
+  - Explizite Farbe via Top-Level `color: "#44739E"` für konsistentes HA-Icon-Blau über alle Themes
+- Buttons umbenannt für Selbsterklärung nach längeren Nutzungspausen:
+  - Remote Start → HA-Steuerung starten
+  - Remote Stop → Pumpe stoppen (HA-Steuerung bleibt)
+  - → Lokal → HA-Steuerung beenden
+  - → Lokal (übernehmen) → Einstellungen sichern & HA-Steuerung beenden
+- Neuer Konstantdruck-Button (Mode 4) in Reihe 2
+- Neuer „Alarm zurücksetzen"-Button in Reihe 3 (Script war vorhanden, aber nicht im UI verlinkt)
+- Mathe-Icons für Proportionaldruck (`mdi:function-variant`) und Konstantdruck (`mdi:approximately-equal`) — bei kleinen Größen leichter zu unterscheiden als `mdi:gauge` / `mdi:gauge-low`
+
 ## v3-enhanced3 (2026-04-08)
 
 - Bearing Service Sensor: `unknown`-String durch natives HA `availability`-Template ersetzt

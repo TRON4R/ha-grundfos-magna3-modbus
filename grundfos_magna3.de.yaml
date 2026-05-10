@@ -131,7 +131,7 @@ modbus:
       
       # 00105 ist laut Doku "RelayControl" und gilt nur für "E-pumps and CUE".
       # Bei MAGNA3 ist das in vielen Fällen NICHT nutzbar (liefert oft 0 / nicht vorhanden).
-      # Daher mitgeliefert, aber auskommentiert wie gewünscht.
+      # Daher mitgeliefert, aber auskommentiert
       # - name: "MAGNA3 Relay Control (00105 Raw)"
       #   unique_id: magna3_r00105_relay_control_raw
       #   address: 104  # Register 00105
@@ -1245,7 +1245,7 @@ script:
           message: "MAGNA3 wurde gestoppt (Remote aktiv)"
           title: "MAGNA3"
   
-  # Zu Lokal zurück
+  # Zurück zu Lokal (Bus-Setpoint verwerfen, Pumpe nutzt im EEPROM gespeicherten Wert)
   magna3_to_local:
     alias: "MAGNA3: Zurück zu Lokal"
     sequence:
@@ -1260,7 +1260,36 @@ script:
         data:
           message: "MAGNA3 auf Lokal-Steuerung umgeschaltet"
           title: "MAGNA3"
-  
+
+  # Zurück zu Lokal MIT Übernahme des aktuellen Bus-Setpoints ins Pumpen-EEPROM.
+  # Mechanismus laut Grundfos-Dok 98367081 (Reg 00101 Bit 4 "CopyToLocal"):
+  # Control Context (Regelmodus, Betriebsmodus, On/Off, Setpoint) wird von
+  # Remote nach Local kopiert, wenn beim Remote->Local-Wechsel Bit 4 gesetzt ist.
+  # Ein einziger Write 3 -> 16 erfuellt beide Bedingungen atomar:
+  #   Bit 0 faellt 1->0 (Remote->Local-Flanke) UND Bit 4 = 1 im selben Update.
+  # Verifizierbar nach Klick ueber binary_sensor.magna3_copy_to_local (Reg 00201 Bit 1).
+  # Falls eine bestimmte Firmware das ignoriert, siehe Fallback-Block unten (auskommentiert).
+  magna3_to_local_copy:
+    alias: "MAGNA3: Zurück zu Lokal (Setpoint übernehmen)"
+    sequence:
+      - action: modbus.write_register
+        data:
+          hub: Grundfos_MAGNA3
+          address: 100  # Register 00101
+          slave: 1
+          value: 16  # Local(0) + CopyToLocal(1)
+      - delay: 2
+      - action: persistent_notification.create
+        data:
+          message: "MAGNA3 auf Lokal — aktueller Setpoint übernommen"
+          title: "MAGNA3"
+      # --- Fallback (nur falls die Ein-Write-Variante unzuverlaessig ist) ---
+      # - action: modbus.write_register
+      #   data: { hub: Grundfos_MAGNA3, address: 100, slave: 1, value: 19 }   # Bit 4 vorbereiten (noch Remote)
+      # - delay: { milliseconds: 500 }
+      # - action: modbus.write_register
+      #   data: { hub: Grundfos_MAGNA3, address: 100, slave: 1, value: 16 }   # Remote->Local-Flanke
+
   # Alarm Reset
   magna3_reset_alarm:
     alias: "MAGNA3: Alarm zurücksetzen"
@@ -1315,7 +1344,19 @@ script:
         data:
           message: "Regelungsart: Proportionaldruck"
           title: "MAGNA3"
-  
+
+  # Konstantdruck aktivieren
+  magna3_enable_constant_pressure:
+    alias: "MAGNA3: Konstantdruck aktivieren"
+    sequence:
+      - action: script.magna3_set_regelungsart
+        data:
+          mode: 4
+      - action: persistent_notification.create
+        data:
+          message: "Regelungsart: Konstantdruck"
+          title: "MAGNA3"
+
   # --- Optional: FLOWLIMIT setzen (Register 00106) ---
   # HINWEIS: Dieses Script wird aktuell nicht über die UI aufgerufen,
   # da die zugehörige input_number auskommentiert ist.
