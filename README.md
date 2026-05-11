@@ -50,6 +50,7 @@ All sensors and registers have been carefully defined with correct and complete 
 ## Dashboard Card (optional)
 </p>
 (Sorry for the German screenshot. The Dashboard is available in English, but I can only have one YAML installed)
+</p>
 <p align="center">
   <img src="images/dashboard_screenshot.png" alt="MAGNA3 Dashboard"/>
 </p>
