@@ -1,5 +1,13 @@
 # Changelog
 
+## v4.2 (2026-05-11)
+
+- **YAML-Header aufgeräumt**: die drei Inline-CHANGELOG-Blöcke (v2 / v3 / v3-enhanced, ~25 Zeilen) entfernt. Die YAML enthält im Header künftig nur noch eine `Version:`-Zeile und einen Link auf diese CHANGELOG — single source of truth, keine doppelte Pflege mehr
+- Falsche Install-Anweisung „IP-Adresse unten anpassen (Zeile 23)" korrigiert — die Zeilennummer war ohnehin schon falsch (Host steht auf Zeile 46) und hätte bei jeder Änderung gewandert. Ersetzt durch eine robuste Beschreibung („IP-Adresse im modbus:-Block unten anpassen, Schlüssel host:")
+- Repo-URL und CHANGELOG-URL zum YAML-Header hinzugefügt
+- **README**: `button-card` zur Tabelle „Erforderliche HACS-Karten" hinzugefügt — war bei v4 übersehen worden, als das Dashboard auf `custom:button-card` migriert wurde. Ohne diese Karte rendert das Dashboard nicht korrekt
+- Dashboard-Screenshot aktualisiert (korrigierte Variante)
+
 ## v4.1 (2026-05-11)
 
 - **CopyToLocal-Fix funktioniert jetzt wirklich**: `magna3_to_local_copy` umgestellt vom Single-Write (3 → 16) auf die zweistufige Variante (Write 19, 500 ms Pause, Write 16). Reale MAGNA3-Firmware hat CopyToLocal nicht zuverlässig im selben Polling-Zyklus wie die Bit-0-Flanke als aktiv erkannt, dadurch ist das EEPROM-Speichern stillschweigend ausgefallen. Mit der zweistufigen Variante hat die Pumpe Zeit, das vorbereitete Flag wahrzunehmen, bevor die Remote→Local-Flanke kommt

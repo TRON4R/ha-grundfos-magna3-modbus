@@ -65,6 +65,7 @@ Die Dashboard-Karte benötigt folgende HACS Frontend-Erweiterungen:
 |---|---|---|
 | [**Vertical Stack In Card**](https://github.com/ofekashery/vertical-stack-in-card) | Äußerer Container ohne Rahmen | `vertical-stack-in-card` |
 | [**card-mod**](https://github.com/thomasloven/lovelace-card-mod) | CSS-Styling (Rahmen entfernen, Farben) | `card-mod` |
+| [**button-card**](https://github.com/custom-cards/button-card) | Steuerbuttons mit Tooltips, Mehrzeilen-Beschriftung und individueller Icon-Größe | `button-card` |
 | [**Mushroom**](https://github.com/piitaya/lovelace-mushroom) | Template-Karte für Durchfluss-Status | `mushroom` |
 
 Ohne diese Karten wird die Dashboard-Karte nicht korrekt dargestellt. Die Modbus-YAML selbst funktioniert unabhängig davon.

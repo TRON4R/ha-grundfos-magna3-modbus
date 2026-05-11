@@ -65,6 +65,7 @@ The dashboard card requires the following HACS frontend extensions:
 |---|---|---|
 | [**Vertical Stack In Card**](https://github.com/ofekashery/vertical-stack-in-card) | Outer container without borders | `vertical-stack-in-card` |
 | [**card-mod**](https://github.com/thomasloven/lovelace-card-mod) | CSS styling (remove borders, colors) | `card-mod` |
+| [**button-card**](https://github.com/custom-cards/button-card) | Control buttons with tooltips, multi-line labels, custom icon sizing | `button-card` |
 | [**Mushroom**](https://github.com/piitaya/lovelace-mushroom) | Template card for flow status | `mushroom` |
 
 Without these cards the dashboard card will not render correctly. The Modbus YAML itself works independently.

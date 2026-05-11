@@ -1,8 +1,11 @@
 # ==============================================================================
-# GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration (v3-enhanced)
+# GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration
 # ==============================================================================
+# Version:       v4.2 (2026-05-11)
 # CIM 500 Modbus TCP Configuration
 # Documentation: Grundfos 98367081 05.2025
+# Repo:          https://github.com/TRON4R/ha-grundfos-magna3-modbus
+# Changelog:     https://github.com/TRON4R/ha-grundfos-magna3-modbus/blob/main/CHANGELOG.md
 #
 # YAML created in 2025 by TRON4R for MAGNA3 integration with Home Assistant
 #
@@ -11,33 +14,8 @@
 # 2. Add to configuration.yaml:
 #    homeassistant:
 #      packages: !include_dir_named packages
-# 3. Adjust IP address below (line 23)
+# 3. Adjust the IP address in the modbus: block below (key "host:")
 # 4. Restart Home Assistant
-#
-# CHANGELOG v3-enhanced:
-# - Replaced all deprecated service: entries with action:
-# - Fixed and added various device classes
-# - Added registers 00221 to 00225
-# - Added bit 12 to template sensor for register 00201 
-# - Various state_class corrections, fixed YAML indentation errors
-#
-# CHANGELOG v3:
-# - Added device classes to all registers (00213-00216, 00210-00211)
-# - Added state classes where missing
-# - Added register 00106 (SetMaxFlowLimit) (commented out)
-# - Added register 00316 (RemotePressure1) (commented out)
-# - Added register 00320 (RemoteTemp1) (commented out)
-# - Added PID parameters 00110-00112 (commented out with warnings)
-# - Detailed PID parameter documentation
-# 
-# CHANGELOG v2:
-# - Added unique IDs (magna3_rXXXXX)
-# - Fixed device classes
-# - Optimized scan intervals (30-60s instead of 5-10s)
-# - Numeric sorting by register address
-# - Binary sensors as templates (for bit evaluation)
-# - Added missing registers (MaxFlowLimit)
-# - Improved descriptions
 # ==============================================================================
 
 modbus:

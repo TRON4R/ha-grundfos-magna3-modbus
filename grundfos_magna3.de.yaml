@@ -1,8 +1,11 @@
 # ==============================================================================
-# GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration (v3-enhanced)
+# GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration
 # ==============================================================================
+# Version:       v4.2 (2026-05-11)
 # CIM 500 Modbus TCP Konfiguration
 # Dokumentation: Grundfos 98367081 05.2025
+# Repo:          https://github.com/TRON4R/ha-grundfos-magna3-modbus
+# Changelog:     https://github.com/TRON4R/ha-grundfos-magna3-modbus/blob/main/CHANGELOG.de.md
 #
 # YAML erstellt in 2025 von TRON4R zur Anbindung der MAGNA3 in Home Assistant
 #
@@ -11,33 +14,8 @@
 # 2. In configuration.yaml einfügen:
 #    homeassistant:
 #      packages: !include_dir_named packages
-# 3. IP-Adresse unten anpassen (Zeile 23)
+# 3. IP-Adresse im modbus:-Block unten anpassen (Schlüssel "host:")
 # 4. Home Assistant neu starten
-#
-# CHANGELOG v3-enhanced:
-# - alle veralteten service: Einträge in den Automationen durch action: ersetzt
-# - diverse device classes korrigiert oder hinzugefügt
-# - Register 00221 bis 00225 noch hinzugefügt
-# - Bit 12 noch in Template Sensor für Register 00201 hinzugefügt 
-# - Diverse state_class Korrekturen durchgeführt, YAML-Einrückungsfehler beseitigt
-#
-# CHANGELOG v3:
-# - Device Classes ergänzt bei allen Registern (00213-00216, 00210-00211)
-# - State Classes ergänzt wo fehlend
-# - Register 00106 (SetMaxFlowLimit) hinzugefügt (auskommentiert)
-# - Register 00316 (RemotePressure1) hinzugefügt (auskommentiert)
-# - Register 00320 (RemoteTemp1) hinzugefügt (auskommentiert)
-# - PID-Parameter 00110-00112 hinzugefügt (auskommentiert mit Warnungen)
-# - Ausführliche Dokumentation zu PID-Parametern
-# 
-# CHANGELOG v2:
-# - Unique IDs hinzugefügt (magna3_rXXXXX)
-# - Device Classes korrigiert
-# - Scan-Intervalle optimiert (30-60s statt 5-10s)
-# - Numerische Sortierung nach Register-Adresse
-# - Binary Sensors als Templates (für Bit-Auswertung)
-# - Fehlende Register ergänzt (MaxFlowLimit)
-# - Bessere Beschreibungen
 # ==============================================================================
 
 modbus:

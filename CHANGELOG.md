@@ -1,5 +1,13 @@
 # Changelog
 
+## v4.2 (2026-05-11)
+
+- **Cleaned up YAML header**: removed the three inline CHANGELOG blocks (v2 / v3 / v3-enhanced, ~25 lines). Going forward the YAML header carries only a `Version:` stamp and a link to this CHANGELOG — single source of truth, no more drift between inline notes and repo CHANGELOG
+- Fixed the outdated install instruction "Adjust IP address below (line 23)" — line number was already wrong (host is on line 46) and would drift on every change. Replaced with a robust description ("Adjust the IP address in the modbus: block below, key 'host:'")
+- Added repo URL and CHANGELOG URL to the YAML header
+- **README**: added `button-card` to the "Required HACS Cards" table — was overlooked in v4 when the dashboard was migrated to `custom:button-card`. The dashboard cannot render correctly without it
+- Updated the dashboard screenshot (corrected version)
+
 ## v4.1 (2026-05-11)
 
 - **CopyToLocal fix actually works now**: switched `magna3_to_local_copy` from a single atomic write (3 → 16) to the two-step variant (write 19, wait 500 ms, write 16). Real MAGNA3 firmware did not reliably see CopyToLocal as active during the same poll cycle as the bit-0 fall, so the EEPROM copy silently failed. Two-step gives the pump time to register the armed flag before the Remote→Local edge
