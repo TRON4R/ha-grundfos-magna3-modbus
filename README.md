@@ -52,7 +52,8 @@ All sensors and registers have been carefully defined with correct and complete 
 <p align="center">
   <img src="images/dashboard_screenshot.png" alt="MAGNA3 Dashboard"/>
 </p>
-
+(Sorry for the German screenshot. The Dashboard is available in English, but I can only have one YAML installed)
+</p>
 The file `dashboard_card.yaml` contains a ready-to-use Lovelace card with gauges, control buttons and status indicators.
 
 **Usage:** Paste the contents of `dashboard_card.yaml` as a manual card (YAML) in the dashboard editor.
