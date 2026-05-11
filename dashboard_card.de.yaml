@@ -197,8 +197,8 @@ cards:
           perform_action: script.magna3_start_remote
         tooltip:
           content: >-
-            HA übernimmt per Modbus. Pumpe läuft (bzw. wird gestartet).
-            Der Setpoint-Slider in HA steuert jetzt die Pumpe.
+            HA übernimmt die Steuerung per Modbus. Pumpe läuft weiter (bzw. wird gestartet).
+            Die Setpoint-Slider und Buttons im Dashboard steuern jetzt die MAGNA3.
           placement: bottom
           arrow: true
         styles:
@@ -236,7 +236,7 @@ cards:
           perform_action: script.magna3_to_local_copy
         tooltip:
           content: >-
-            Gibt die Steuerung an die Pumpe zurück und speichert Setpoint,
+            Gibt die Steuerung an die Pumpe zurück und speichert Sollwert,
             Regelungsart und On/Off-Zustand im Pumpen-EEPROM.
             Nach Änderungen via HA verwenden, damit sie einen Stromausfall überleben.
           placement: bottom
@@ -274,8 +274,8 @@ cards:
           perform_action: script.magna3_to_local
         tooltip:
           content: >-
-            Gibt die Steuerung an die Pumpe zurück. Der aktuelle Bus-Setpoint
-            wird VERWORFEN — die Pumpe nutzt den letzten gespeicherten (EEPROM) Setpoint.
+            Gibt die Steuerung an die Pumpe zurück. Der aktuelle Bus-Sollwert
+            wird VERWORFEN — die Pumpe nutzt den letzten gespeicherten (EEPROM) Sollwert.
             Zum Abbrechen einer HA-Session ohne Speicherung.
           placement: bottom
           arrow: true

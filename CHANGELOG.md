@@ -1,5 +1,14 @@
 # Changelog
 
+## v4.3 (2026-05-11)
+
+German-only release — no changes to the English YAML or dashboard.
+
+- **Control mode display fully translated to German** (`sensor.magna3_regelungsart`). Previously only Proportionaldruck and brand names (AUTOADAPT, FLOWADAPT) were in German; mode 4 still rendered as "Constant Pressure" in a German dashboard. All modes 0, 1, 3, 4, 5, 7, 8, 10, 130 are now translated. Brand names (AUTOADAPT, FLOWADAPT, AUTOADAPT(CP)) unchanged
+- **Operation mode display translated** (`sensor.magna3_betriebsart`): "Auto-Control" → "Auto-Regelung", "Open Loop Min" → "Mindestkennlinie", "Open Loop Max" → "Maximumkennlinie"
+- **"HA-Steuerung starten" tooltip reworded** for better clarity, now mentions the setpoint sliders and buttons as the main control surface
+- **"Einstellungen sichern & HA-Steuerung beenden" and "HA-Steuerung beenden" tooltips**: replaced the word "Setpoint" with "Sollwert" (consistency with the German UI terminology)
+
 ## v4.2 (2026-05-11)
 
 - **Cleaned up YAML header**: removed the three inline CHANGELOG blocks (v2 / v3 / v3-enhanced, ~25 lines). Going forward the YAML header carries only a `Version:` stamp and a link to this CHANGELOG — single source of truth, no more drift between inline notes and repo CHANGELOG

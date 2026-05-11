@@ -1,7 +1,7 @@
 # ==============================================================================
 # GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration
 # ==============================================================================
-# Version:       v4.2 (2026-05-11)
+# Version:       v4.3 (2026-05-11)
 # CIM 500 Modbus TCP Konfiguration
 # Dokumentation: Grundfos 98367081 05.2025
 # Repo:          https://github.com/TRON4R/ha-grundfos-magna3-modbus
@@ -839,18 +839,18 @@ template:
         unique_id: magna3_control_mode_text
         state: >
           {% set mode = states('sensor.magna3_regelungsart_code') | int(0) %}
-          {% if mode == 0 %}Constant Speed
-          {% elif mode == 1 %}Constant Frequency
-          {% elif mode == 3 %}Constant Head
-          {% elif mode == 4 %}Constant Pressure
-          {% elif mode == 5 %}Const. Diff. Pressure
+          {% if mode == 0 %}Konstante Drehzahl
+          {% elif mode == 1 %}Konstante Frequenz
+          {% elif mode == 3 %}Konstante Förderhöhe
+          {% elif mode == 4 %}Konstantdruck
+          {% elif mode == 5 %}Konstanter Differenzdruck
           {% elif mode == 6 %}Proportionaldruck
-          {% elif mode == 7 %}Constant Flow
-          {% elif mode == 8 %}Constant Temperature
-          {% elif mode == 10 %}Constant Level
+          {% elif mode == 7 %}Konstanter Volumenstrom
+          {% elif mode == 8 %}Konstante Temperatur
+          {% elif mode == 10 %}Konstanter Füllstand
           {% elif mode == 128 %}AUTOADAPT
           {% elif mode == 129 %}FLOWADAPT
-          {% elif mode == 130 %}Closed-Loop Sensor
+          {% elif mode == 130 %}Regelung mit externem Sensor
           {% elif mode == 131 %}AUTOADAPT(CP)
           {% else %}Unbekannt ({{ mode }})
           {% endif %}
@@ -861,9 +861,9 @@ template:
         unique_id: magna3_operation_mode_text
         state: >
           {% set mode = states('sensor.magna3_betriebsmodus_code') | int(0) %}
-          {% if mode == 0 %}Auto-Control
-          {% elif mode == 4 %}Open Loop Min
-          {% elif mode == 6 %}Open Loop Max
+          {% if mode == 0 %}Auto-Regelung
+          {% elif mode == 4 %}Mindestkennlinie
+          {% elif mode == 6 %}Maximumkennlinie
           {% else %}Unbekannt ({{ mode }})
           {% endif %}
         icon: mdi:cog-outline

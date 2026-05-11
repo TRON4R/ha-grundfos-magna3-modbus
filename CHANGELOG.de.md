@@ -1,5 +1,12 @@
 # Changelog
 
+## v4.3 (2026-05-11)
+
+- **Regelungsart-Anzeige vollständig auf Deutsch übersetzt** (`sensor.magna3_regelungsart`). Bisher waren nur Proportionaldruck und die Markennamen (AUTOADAPT, FLOWADAPT) deutsch; Mode 4 zeigte z.B. „Constant Pressure" statt „Konstantdruck". Übersetzt sind jetzt alle Modes 0, 1, 3, 4, 5, 7, 8, 10, 130. Markennamen (AUTOADAPT, FLOWADAPT, AUTOADAPT(CP)) bleiben unverändert.
+- **Betriebsart-Anzeige übersetzt** (`sensor.magna3_betriebsart`): „Auto-Control" → „Auto-Regelung", „Open Loop Min" → „Mindestkennlinie", „Open Loop Max" → „Maximumkennlinie"
+- **Tooltip „HA-Steuerung starten" überarbeitet**: präziser formuliert, erwähnt jetzt Sollwert-Slider und Buttons als zentrale Steuerungselemente
+- **Tooltips „Einstellungen sichern & HA-Steuerung beenden" und „HA-Steuerung beenden"**: Begriff „Setpoint" durch „Sollwert" ersetzt (Konsistenz mit der deutschen UI-Terminologie)
+
 ## v4.2 (2026-05-11)
 
 - **YAML-Header aufgeräumt**: die drei Inline-CHANGELOG-Blöcke (v2 / v3 / v3-enhanced, ~25 Zeilen) entfernt. Die YAML enthält im Header künftig nur noch eine `Version:`-Zeile und einen Link auf diese CHANGELOG — single source of truth, keine doppelte Pflege mehr
