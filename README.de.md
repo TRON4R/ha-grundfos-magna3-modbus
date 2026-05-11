@@ -17,7 +17,7 @@
 - **Status-Bits**: 11 Binary Sensors aus dem Status-Register (Pumpe läuft, Alarm, Warnung, Remote-Modus, ...)
 - **Berechnete Werte**: Effizienz, Energiekosten, Sollwert in Meter, Software-Version (BCD-Dekodierung), Alarm-/Warnungstexte
 - **Steuerung**: Remote Start/Stop, Regelungsart wechseln (AUTOADAPT, FLOWADAPT, Proportionaldruck), Sollwert setzen (% und Meter)
-- **Automationen**: Watchdog, Alarm-Benachrichtigung, Strom-Warnung, bidirektionale Sollwert-Synchronisation
+- **Automationen**: Alarm- und Warnungs-Benachrichtigungen, Hochstrom-Erkennung, ForcedToLocal-Detektor, bidirektionale Sollwert-Synchronisation
 - **Dashboard-Karte**: Fertige Lovelace-Karte mit Gauges, Steuerbuttons und Statusanzeigen
 
 ## Entitäten-Qualität
@@ -68,6 +68,41 @@ Die Dashboard-Karte benötigt folgende HACS Frontend-Erweiterungen:
 | [**Mushroom**](https://github.com/piitaya/lovelace-mushroom) | Template-Karte für Durchfluss-Status | `mushroom` |
 
 Ohne diese Karten wird die Dashboard-Karte nicht korrekt dargestellt. Die Modbus-YAML selbst funktioniert unabhängig davon.
+
+## Überwachung & Benachrichtigungen
+
+Die Pumpe meldet Probleme selbst über zwei Statusbits in Register 00201 (Bit 10 „Alarm" = rote LED, Bit 11 „Warnung" = orange LED) sowie konkrete Fehlercodes in den Registern 00205 (Alarm) und 00206 (Warnung). Vier vorkonfigurierte Automationen werten das aus und legen entsprechende Benachrichtigungen im HA-Notification-Drawer ab:
+
+| Automation | Auslöser | Was sie meldet |
+|---|---|---|
+| `magna3_alarm_notification` | Reg 00201 Bit 10 → on | 🚨 Alarm mit Code (Reg 00205) und Klartext (z.B. „Trockenlauf", „Überstrom", „Sensorfehler"). Pumpe schaltet i.d.R. ab |
+| `magna3_warning_notification` | Reg 00201 Bit 11 → on | ⚠️ Warnung mit Code (Reg 00206). Pumpe läuft weiter, aber Aufmerksamkeit nötig (z.B. Sensor-Drift, Lager-Service fällig) |
+| `magna3_high_current` | Motorstrom > 5 A für 5 Min | ⚠️ Frühindikator für mechanische Probleme — bevor die Pumpe selbst eine Übertemperatur-Abschaltung meldet |
+| `magna3_forced_to_local_detected` | Reg 00201 Bit 12 → on | ⚠️ Pumpe wurde von außerhalb von HA in den Lokalmodus gezwungen (Bedienung am Pumpendisplay, Grundfos GO App, Digitaleingang) — HA-Steuerung ist solange nicht möglich |
+
+**Wichtig:** Die Statusregister werden **alle 30 Sekunden** über Modbus gepollt, **unabhängig** davon, ob HA gerade die Pumpe steuert oder die Pumpe lokal läuft. Auch Alarme während rein lokaler Pumpenoperation erreichen also zuverlässig den HA-Notification-Drawer.
+
+**Quittieren:** Aktive Alarme werden über den Dashboard-Button *„Alarm zurücksetzen"* gelöscht (Script `magna3_reset_alarm` — schreibt einen Rising-Edge-Trigger auf Reg 00101 Bit 2). Achtung: Der Reset wirkt nur, wenn die zugrundeliegende Fehlerursache (z.B. Trockenlauf-Bedingung) bereits behoben ist. Warnungen verschwinden hingegen automatisch, sobald die Ursache wegfällt.
+
+**Erweiterung:** Wenn du Push-Notifications aufs Handy willst (statt nur den HA-Drawer), kannst du die jeweilige Automation um eine zweite `action:` mit `notify.mobile_app_<device>` ergänzen. Beispiel:
+
+```yaml
+- id: magna3_alarm_notification
+  alias: "MAGNA3: Alarm Benachrichtigung"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.magna3_alarm
+      to: 'on'
+  action:
+    - action: persistent_notification.create
+      data:
+        title: "🚨 MAGNA3 Alarm"
+        message: "Code: {{ states('sensor.magna3_alarm_code') }} ({{ states('sensor.magna3_alarm_text') }})"
+    - action: notify.mobile_app_dein_handy   # ← anpassen oder ganz weglassen
+      data:
+        title: "🚨 MAGNA3 Alarm"
+        message: "Code: {{ states('sensor.magna3_alarm_code') }} ({{ states('sensor.magna3_alarm_text') }})"
+```
 
 ## Registerübersicht
 

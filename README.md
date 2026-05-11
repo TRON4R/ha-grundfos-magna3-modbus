@@ -17,7 +17,7 @@
 - **Status bits**: 11 binary sensors decoded from the status register (pump running, alarm, warning, remote mode, ...)
 - **Computed values**: Efficiency, energy cost, setpoint in meters, firmware version (BCD decoding), alarm/warning text
 - **Control**: Remote start/stop, change control mode (AUTOADAPT, FLOWADAPT, proportional pressure), set setpoint (% and meters)
-- **Automations**: Watchdog, alarm notification, high current warning, bidirectional setpoint synchronization
+- **Automations**: Alarm and warning notifications, high-current detection, ForcedToLocal detector, bidirectional setpoint synchronization
 - **Dashboard card**: Ready-to-use Lovelace card with gauges, control buttons and status indicators
 
 ## Entity Quality
@@ -68,6 +68,41 @@ The dashboard card requires the following HACS frontend extensions:
 | [**Mushroom**](https://github.com/piitaya/lovelace-mushroom) | Template card for flow status | `mushroom` |
 
 Without these cards the dashboard card will not render correctly. The Modbus YAML itself works independently.
+
+## Monitoring & Notifications
+
+The pump itself reports problems via two status bits in register 00201 (bit 10 "Alarm" = red LED, bit 11 "Warning" = orange LED) plus concrete error codes in registers 00205 (alarm) and 00206 (warning). Four preconfigured automations evaluate these and place corresponding entries in the HA notification drawer:
+
+| Automation | Trigger | What it reports |
+|---|---|---|
+| `magna3_alarm_notification` | Reg 00201 bit 10 → on | 🚨 Alarm with code (Reg 00205) and plain text (e.g. "Dry running", "Overcurrent", "Sensor fault"). Pump typically shuts off |
+| `magna3_warning_notification` | Reg 00201 bit 11 → on | ⚠️ Warning with code (Reg 00206). Pump keeps running, but attention needed (e.g. sensor drift, bearing service due) |
+| `magna3_high_current` | Motor current > 5 A for 5 min | ⚠️ Early indicator of mechanical issues — before the pump itself triggers an overtemperature shutdown |
+| `magna3_forced_to_local_detected` | Reg 00201 bit 12 → on | ⚠️ Pump was forced into local mode by something other than HA (interaction at the pump display, Grundfos GO app, digital input) — HA control is not possible while this lasts |
+
+**Important:** Status registers are polled **every 30 seconds** via Modbus, **regardless** of whether HA is controlling the pump or the pump is running locally. Alarms during purely local pump operation still reliably reach the HA notification drawer.
+
+**Acknowledge:** Active alarms are cleared via the dashboard button *"Reset Alarm"* (script `magna3_reset_alarm` — writes a rising-edge trigger on Reg 00101 bit 2). Note: the reset only works once the underlying root cause (e.g. dry-running condition) has been resolved. Warnings, in contrast, disappear automatically once the cause is gone.
+
+**Extension:** If you want push notifications to your phone (instead of just the HA drawer), you can extend the relevant automation with a second `action:` calling `notify.mobile_app_<device>`. Example:
+
+```yaml
+- id: magna3_alarm_notification
+  alias: "MAGNA3: Alarm Notification"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.magna3_alarm
+      to: 'on'
+  action:
+    - action: persistent_notification.create
+      data:
+        title: "🚨 MAGNA3 Alarm"
+        message: "Code: {{ states('sensor.magna3_alarm_code') }} ({{ states('sensor.magna3_alarm_text') }})"
+    - action: notify.mobile_app_your_phone   # ← adjust or remove
+      data:
+        title: "🚨 MAGNA3 Alarm"
+        message: "Code: {{ states('sensor.magna3_alarm_code') }} ({{ states('sensor.magna3_alarm_text') }})"
+```
 
 ## Register Overview
 
