@@ -1,5 +1,16 @@
 # Changelog
 
+## v4.1 (2026-05-11)
+
+- **CopyToLocal-Fix funktioniert jetzt wirklich**: `magna3_to_local_copy` umgestellt vom Single-Write (3 → 16) auf die zweistufige Variante (Write 19, 500 ms Pause, Write 16). Reale MAGNA3-Firmware hat CopyToLocal nicht zuverlässig im selben Polling-Zyklus wie die Bit-0-Flanke als aktiv erkannt, dadurch ist das EEPROM-Speichern stillschweigend ausgefallen. Mit der zweistufigen Variante hat die Pumpe Zeit, das vorbereitete Flag wahrzunehmen, bevor die Remote→Local-Flanke kommt
+- Steuerquellen-Text „Modbus/TCP" → „Home Assistant via Modbus/TCP" (klarer in der Entities-Karte)
+- `persistent_notification.create` aus 8 Steuerungs-Scripts entfernt (Start, Stop, → Lokal, Proportionaldruck, Konstantdruck, AutoAdapt, FlowAdapt, Max-Durchfluss setzen) — der Button-Klick ist Feedback genug, vorher wurde das Notification-Drawer mit jedem Klick zugespammt
+- Bestätigungs-Notification zu `magna3_reset_alarm` hinzugefügt (selten benutzt, Nebenwirkungen rechtfertigen Bestätigung)
+- Notification in `magna3_to_local_copy` beibehalten (EEPROM-Speichern wäre sonst unsichtbar)
+- **Automation umbenannt** `magna3_watchdog_alarm` → `magna3_forced_to_local_detected` (entity_id ändert sich; alte Entität wird nach Reload `unavailable`). Der alte Name suggerierte einen Modbus-Watchdog, feuerte aber bei jedem nutzerinitiierten Wechsel auf Lokal. Trigger jetzt `binary_sensor.magna3_zwang_auf_handbetrieb` (Reg 00201 Bit 12) — feuert nur, wenn die Pumpe von etwas anderem als HA in den Lokal-Modus gezwungen wurde (Display, GO App etc.)
+- Neue Automation `magna3_warning_notification`: feuert, wenn das Warnung-Bit (Reg 00201 Bit 11, orange LED) angeht, zeigt Warnung-Code aus Reg 00206
+- Dashboard-Screenshot aktualisiert (neue Buttons Konstantdruck, Alarm zurücksetzen und neue Beschriftungen)
+
 ## v4 (2026-05-10)
 
 - Neues Script `magna3_to_local_copy`: Behebt das Zurückspringen der Pumpe auf den alten Setpoint nach Rückgabe der Steuerung an die Pumpe. Schreibt in einem einzigen Write Reg 00101 = 16 (Local + CopyToLocal), sodass beim Remote→Local-Wechsel der Bus-Setpoint, die Regelungsart und der On/Off-Zustand ins Pumpen-EEPROM kopiert werden (laut Grundfos-Dok 98367081, Reg 00101 Bit 4 „CopyToLocal")

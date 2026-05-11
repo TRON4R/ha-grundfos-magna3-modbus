@@ -981,7 +981,7 @@ template:
         state: >
           {% set source = states('sensor.magna3_control_source_code') | int(0) %}
           {% if source == 1 %}Display
-          {% elif source == 2 %}Modbus/TCP
+          {% elif source == 2 %}Home Assistant via Modbus/TCP
           {% elif source == 3 %}Grundfos GO App
           {% elif source == 4 %}Digital Input
           {% elif source == 5 %}OFF Button
@@ -1223,12 +1223,7 @@ script:
           address: 100  # Register 00101
           slave: 1
           value: 3  # Remote(1) + On(1)
-      - delay: 2
-      - action: persistent_notification.create
-        data:
-          message: "MAGNA3 was started remotely"
-          title: "MAGNA3"
-  
+
   # Remote Stop
   magna3_stop_remote:
     alias: "MAGNA3: Remote Stop"
@@ -1239,12 +1234,7 @@ script:
           address: 100
           slave: 1
           value: 1  # Remote(1) + Off(0)
-      - delay: 2
-      - action: persistent_notification.create
-        data:
-          message: "MAGNA3 was stopped (remote active)"
-          title: "MAGNA3"
-  
+
   # Switch to local (discard bus setpoint, pump reverts to stored EEPROM setpoint)
   magna3_to_local:
     alias: "MAGNA3: Switch to Local"
@@ -1255,21 +1245,15 @@ script:
           address: 100
           slave: 1
           value: 0  # Local(0)
-      - delay: 2
-      - action: persistent_notification.create
-        data:
-          message: "MAGNA3 switched to local control"
-          title: "MAGNA3"
 
   # Switch to local AND copy current bus setpoint into pump EEPROM.
   # Mechanism per Grundfos doc 98367081 (reg 00101 bit 4 "CopyToLocal"):
   # Control Context (mode, op-mode, on/off, setpoint) is copied from remote
   # to local on the Remote->Local transition when bit 4 is set.
-  # Single write 3 -> 16 satisfies both conditions atomically:
-  #   bit 0 falls 1->0 (Remote->Local edge) AND bit 4 = 1 in the same update.
-  # Verify via binary_sensor.magna3_copy_to_local (reg 00201 bit 1) after click.
-  # If a specific firmware ignores this, fall back to the two-step variant
-  # at the bottom of this script (commented out).
+  # Two-step variant: arm bit 4 while still in Remote, give the pump a polling
+  # window, then perform the Remote->Local transition. Single-write 3 -> 16
+  # proved unreliable on real MAGNA3 firmware (the pump did not always see
+  # CopyToLocal as active during the same poll cycle as the bit-0 fall).
   magna3_to_local_copy:
     alias: "MAGNA3: Switch to Local (adopt setpoint)"
     sequence:
@@ -1278,18 +1262,20 @@ script:
           hub: Grundfos_MAGNA3
           address: 100  # Register 00101
           slave: 1
-          value: 16  # Local(0) + CopyToLocal(1)
+          value: 19  # Remote(1) + On(1) + CopyToLocal(1) — arm bit 4 while still in Remote
+      - delay:
+          milliseconds: 500
+      - action: modbus.write_register
+        data:
+          hub: Grundfos_MAGNA3
+          address: 100
+          slave: 1
+          value: 16  # Local(0) + CopyToLocal(1) — Remote->Local edge triggers EEPROM copy
       - delay: 2
       - action: persistent_notification.create
         data:
           message: "MAGNA3 switched to local — current setpoint adopted"
           title: "MAGNA3"
-      # --- Fallback (only if single-write variant proves unreliable) ---
-      # - action: modbus.write_register
-      #   data: { hub: Grundfos_MAGNA3, address: 100, slave: 1, value: 19 }   # arm bit 4 while still Remote
-      # - delay: { milliseconds: 500 }
-      # - action: modbus.write_register
-      #   data: { hub: Grundfos_MAGNA3, address: 100, slave: 1, value: 16 }   # Remote->Local edge
 
   # Alarm Reset
   magna3_reset_alarm:
@@ -1309,7 +1295,11 @@ script:
           address: 100
           slave: 1
           value: 3  # Back to Remote + On
-  
+      - action: persistent_notification.create
+        data:
+          title: "MAGNA3"
+          message: "Alarm reset performed (pump is now under HA control)"
+
   # Enable AUTOADAPT
   magna3_enable_autoadapt:
     alias: "MAGNA3: Enable AUTOADAPT"
@@ -1317,11 +1307,7 @@ script:
       - action: script.magna3_set_control_mode
         data:
           mode: 128
-      - action: persistent_notification.create
-        data:
-          message: "Control mode: AUTOADAPT"
-          title: "MAGNA3"
-  
+
   # Enable FLOWADAPT
   magna3_enable_flowadapt:
     alias: "MAGNA3: Enable FLOWADAPT"
@@ -1329,11 +1315,7 @@ script:
       - action: script.magna3_set_control_mode
         data:
           mode: 129
-      - action: persistent_notification.create
-        data:
-          message: "Control mode: FLOWADAPT"
-          title: "MAGNA3"
-  
+
   # Enable proportional pressure
   magna3_enable_proportional:
     alias: "MAGNA3: Enable Proportional Pressure"
@@ -1341,10 +1323,6 @@ script:
       - action: script.magna3_set_control_mode
         data:
           mode: 6
-      - action: persistent_notification.create
-        data:
-          message: "Control mode: Proportional Pressure"
-          title: "MAGNA3"
 
   # Enable constant pressure
   magna3_enable_constant_pressure:
@@ -1353,10 +1331,6 @@ script:
       - action: script.magna3_set_control_mode
         data:
           mode: 4
-      - action: persistent_notification.create
-        data:
-          message: "Control mode: Constant Pressure"
-          title: "MAGNA3"
   
   # --- Optional: Set FLOWLIMIT (Register 00106) ---
   # NOTE: This script is currently not called from the UI,
@@ -1380,11 +1354,7 @@ script:
           value: >
             {% set limit = limit_m3h | float if limit_m3h is defined else states('input_number.magna3_max_flow_limit') | float %}
             {{ (limit * 100) | int }}
-      - action: persistent_notification.create
-        data:
-          message: "Max flow limit set to {{ limit_m3h }} m3/h"
-          title: "MAGNA3"
-  
+
   # --- WARNING: PID parameters - EXPERTS ONLY! ---
   # magna3_set_pid_kp:
   #   alias: "MAGNA3: Set Kp (EXPERTS!)"
@@ -1438,24 +1408,23 @@ script:
 # AUTOMATIONS - Examples
 # ==============================================================================
 automation:
-  # Watchdog alarm
-  - id: magna3_watchdog_alarm
-    alias: "MAGNA3: Modbus Watchdog"
+  # ForcedToLocal detector: the pump was forced into local mode by something
+  # other than HA (manual operation at the pump display, GO app, etc.).
+  # Reg 00201 bit 12.
+  - id: magna3_forced_to_local_detected
+    alias: "MAGNA3: Pump forced to local"
     trigger:
       - platform: state
-        entity_id: binary_sensor.magna3_remote_mode
-        to: 'off'
-        for:
-          seconds: 10
-    condition:
-      - condition: template
-        value_template: >
-          {{ (now() - (states.sensor.magna3_speed.last_updated | default(now()))).total_seconds() < 120 }}
+        entity_id: binary_sensor.magna3_forced_to_local
+        to: 'on'
     action:
       - action: persistent_notification.create
         data:
-          title: "⚠️ MAGNA3 Watchdog"
-          message: "Pump switched to local! Check Modbus connection."
+          title: "⚠️ MAGNA3"
+          message: >
+            Pump has been forced into local mode (ForcedToLocal bit set).
+            HA control is currently not possible. Likely cause: someone
+            interacted with the pump display or the Grundfos GO app.
   
   # Alarm notification
   - id: magna3_alarm_notification
@@ -1472,6 +1441,22 @@ automation:
             Code: {{ states('sensor.magna3_alarm_code') }}
             {{ states('sensor.magna3_alarm_text') }}
   
+  # Warning notification (Reg 00201 bit 11, orange LED on the pump)
+  - id: magna3_warning_notification
+    alias: "MAGNA3: Warning Notification"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.magna3_warning
+        to: 'on'
+    action:
+      - action: persistent_notification.create
+        data:
+          title: "⚠️ MAGNA3 Warning"
+          message: >
+            Warning code: {{ states('sensor.magna3_warning_code') }}
+            (Pump continues to run, but attention is needed — e.g. sensor
+            drift or bearing service due)
+
   # High current warning
   - id: magna3_high_current
     alias: "MAGNA3: High Current Warning"

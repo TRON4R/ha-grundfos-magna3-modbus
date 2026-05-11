@@ -1,5 +1,16 @@
 # Changelog
 
+## v4.1 (2026-05-11)
+
+- **CopyToLocal fix actually works now**: switched `magna3_to_local_copy` from a single atomic write (3 → 16) to the two-step variant (write 19, wait 500 ms, write 16). Real MAGNA3 firmware did not reliably see CopyToLocal as active during the same poll cycle as the bit-0 fall, so the EEPROM copy silently failed. Two-step gives the pump time to register the armed flag before the Remote→Local edge
+- Control source text "Modbus/TCP" → "Home Assistant via Modbus/TCP" (clearer in the entities card)
+- Removed per-click `persistent_notification.create` from 8 control scripts (Start, Stop, → Local, Proportional, Constant Pressure, AutoAdapt, FlowAdapt, Set Max Flow Limit) — the button click itself is feedback enough, the previous behavior spammed the notification drawer
+- Added confirmation notification to `magna3_reset_alarm` (rarely used, side effects worth confirming)
+- Kept notification in `magna3_to_local_copy` (EEPROM save is otherwise invisible)
+- **Renamed automation** `magna3_watchdog_alarm` → `magna3_forced_to_local_detected` (entity_id change; old entity becomes unavailable after reload). The old name promised a Modbus watchdog but actually fired on every user-initiated local switch. Now triggers on `binary_sensor.magna3_forced_to_local` (Reg 00201 bit 12) — only fires when the pump was forced into local mode by something other than HA (display, GO app, etc.)
+- New automation `magna3_warning_notification`: fires when the pump's warning bit (Reg 00201 bit 11, orange LED) goes on, shows warning code from Reg 00206
+- Updated dashboard screenshot to reflect the new buttons (Constant Pressure, Reset Alarm) and renamed labels
+
 ## v4 (2026-05-10)
 
 - New script `magna3_to_local_copy`: fixes the pump reverting to its old setpoint after returning to local control. Performs a single-write transition (Reg 00101 = 16 = Local + CopyToLocal) so that the bus-set setpoint, control mode, and on/off state are copied into the pump's EEPROM during the Remote→Local edge (per Grundfos doc 98367081, register 00101 bit 4 "CopyToLocal")
