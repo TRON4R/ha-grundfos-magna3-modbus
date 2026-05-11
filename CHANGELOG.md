@@ -1,5 +1,23 @@
 # Changelog
 
+## v4.3.2 (2026-05-11)
+
+German-only release — no changes to the English YAML or dashboard.
+
+Full "Setpoint → Sollwert" consistency sweep in the DE YAML — follow-up to v4.3 / v4.3.1, which only covered the dashboard tooltips.
+
+User-visible texts:
+- `sensor.magna3_sollwert_anforderung`: display name "MAGNA3 Setpoint Request (00104)" → "MAGNA3 Sollwert-Anforderung (00104)"
+- Commented-out optional sensor: "MAGNA3 Max Flow Limit Setpoint (00106)" → "MAGNA3 Max. Volumenstrom-Sollwert (00106)"
+- Script alias: "MAGNA3: Zurück zu Lokal (Setpoint übernehmen)" → "… (Sollwert übernehmen)"
+- Notification text after "Einstellungen sichern": "aktueller Setpoint übernommen" → "aktueller Sollwert übernommen"
+- Constant-pressure tooltip in dashboard: "festem Druck-Setpoint" → "festem Druck-Sollwert"
+
+Internal code comments (consistency only, not visible):
+- 4 inline comments in `grundfos_magna3.de.yaml` converted from "Setpoint" to "Sollwert"
+
+**Deliberately not touched** (would break entity_ids and history): the `unique_id` values (`magna3_r00104_setpoint_req` etc.) and the automation IDs (`magna3_sync_setpoint_percent` / `_meter`). These are technical identifiers, not user-visible.
+
 ## v4.3.1 (2026-05-11)
 
 German-only release — no changes to the English YAML or dashboard.

@@ -394,7 +394,7 @@ cards:
         tooltip:
           content: >-
             Pumpe hält eine konstante Förderhöhe unabhängig vom Volumenstrom.
-            Standard für Fußbodenheizungen oder Systeme mit festem Druck-Setpoint.
+            Standard für Fußbodenheizungen oder Systeme mit festem Druck-Sollwert.
           placement: bottom
           arrow: true
         styles:

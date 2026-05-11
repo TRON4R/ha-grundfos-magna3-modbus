@@ -1,7 +1,7 @@
 # ==============================================================================
 # GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration
 # ==============================================================================
-# Version:       v4.3.1 (2026-05-11)
+# Version:       v4.3.2 (2026-05-11)
 # CIM 500 Modbus TCP Configuration
 # Documentation: Grundfos 98367081 05.2025
 # Repo:          https://github.com/TRON4R/ha-grundfos-magna3-modbus

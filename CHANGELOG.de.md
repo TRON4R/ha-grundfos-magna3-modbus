@@ -1,5 +1,21 @@
 # Changelog
 
+## v4.3.2 (2026-05-11)
+
+Vollständiger „Setpoint → Sollwert"-Konsistenz-Durchgang in der DE-YAML — Nachzug zu v4.3 / v4.3.1, die nur die Dashboard-Tooltips erfasst hatten.
+
+User-sichtbare Texte:
+- `sensor.magna3_sollwert_anforderung`: Anzeigename „MAGNA3 Setpoint Request (00104)" → „MAGNA3 Sollwert-Anforderung (00104)"
+- Auskommentierter optionaler Sensor: „MAGNA3 Max Flow Limit Setpoint (00106)" → „MAGNA3 Max. Volumenstrom-Sollwert (00106)"
+- Script-Alias: „MAGNA3: Zurück zu Lokal (Setpoint übernehmen)" → „… (Sollwert übernehmen)"
+- Notification-Text beim Klick auf „Einstellungen sichern": „aktueller Setpoint übernommen" → „aktueller Sollwert übernommen"
+- Tooltip Konstantdruck im Dashboard: „festem Druck-Setpoint" → „festem Druck-Sollwert"
+
+Interne Code-Kommentare (Konsistenz, nicht sichtbar):
+- 4 Inline-Kommentare in `grundfos_magna3.de.yaml` von „Setpoint" auf „Sollwert" umgestellt
+
+**Bewusst nicht angefasst** (würde Entity-IDs und Historie brechen): die `unique_id`-Werte (`magna3_r00104_setpoint_req` etc.) und die Automation-IDs (`magna3_sync_setpoint_percent` / `_meter`). Diese sind technische Bezeichner, nicht user-sichtbar.
+
 ## v4.3.1 (2026-05-11)
 
 - Tooltip „HA-Steuerung starten": noch verbliebenes „Setpoint-Slider" zu „Sollwert-Slider" gemacht (Konsistenz-Nachzug zu v4.3, bei der die anderen beiden Tooltips schon umgestellt wurden)

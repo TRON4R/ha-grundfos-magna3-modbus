@@ -1,7 +1,7 @@
 # ==============================================================================
 # GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration
 # ==============================================================================
-# Version:       v4.3.1 (2026-05-11)
+# Version:       v4.3.2 (2026-05-11)
 # CIM 500 Modbus TCP Konfiguration
 # Dokumentation: Grundfos 98367081 05.2025
 # Repo:          https://github.com/TRON4R/ha-grundfos-magna3-modbus
@@ -94,7 +94,7 @@ modbus:
         # device_class: (weggelassen)  # Enum/Code
         # state_class: (weggelassen)   # Enum/Code
       
-      - name: "MAGNA3 Setpoint Request (00104)"
+      - name: "MAGNA3 Sollwert-Anforderung (00104)"
         unique_id: magna3_r00104_setpoint_req
         address: 103  # Register 00104
         input_type: holding
@@ -120,7 +120,7 @@ modbus:
       #   # device_class: (weggelassen)  # Bitfeld
       #   # state_class: (weggelassen)   # Bitfeld
       
-      - name: "MAGNA3 Max Flow Limit Setpoint (00106)"
+      - name: "MAGNA3 Max. Volumenstrom-Sollwert (00106)"
         unique_id: magna3_r00106_set_max_flow_limit
         address: 105  # Register 00106
         input_type: holding
@@ -1059,7 +1059,7 @@ input_number:
   #   max: 90  # 0-90% von Qmax oder 0-9.0 m³/h (je nach Pumpe)
   #   step: 0.1
   #   unit_of_measurement: "m³/h"
-  #   # kein state_class: measurement weil ein Setpoint und keine Statistik
+  #   # kein state_class: measurement weil ein Sollwert und keine Statistik
   #   icon: mdi:water-check
   #   mode: slider
   
@@ -1213,7 +1213,7 @@ script:
           slave: 1
           value: 1  # Remote(1) + Off(0)
 
-  # Zurück zu Lokal (Bus-Setpoint verwerfen, Pumpe nutzt im EEPROM gespeicherten Wert)
+  # Zurück zu Lokal (Bus-Sollwert verwerfen, Pumpe nutzt im EEPROM gespeicherten Wert)
   magna3_to_local:
     alias: "MAGNA3: Zurück zu Lokal"
     sequence:
@@ -1224,9 +1224,9 @@ script:
           slave: 1
           value: 0  # Local(0)
 
-  # Zurück zu Lokal MIT Übernahme des aktuellen Bus-Setpoints ins Pumpen-EEPROM.
+  # Zurück zu Lokal MIT Übernahme des aktuellen Bus-Sollwerts ins Pumpen-EEPROM.
   # Mechanismus laut Grundfos-Dok 98367081 (Reg 00101 Bit 4 "CopyToLocal"):
-  # Control Context (Regelmodus, Betriebsmodus, On/Off, Setpoint) wird von
+  # Control Context (Regelmodus, Betriebsmodus, On/Off, Sollwert) wird von
   # Remote nach Local kopiert, wenn beim Remote->Local-Wechsel Bit 4 gesetzt ist.
   # Zweistufige Variante: Bit 4 setzen, waehrend wir noch in Remote sind,
   # damit die Pumpe es bei ihrem naechsten Polling-Zyklus sieht; dann der
@@ -1234,7 +1234,7 @@ script:
   # MAGNA3-Firmware als unzuverlaessig erwiesen, weil die Pumpe CopyToLocal
   # nicht zwingend im selben Polling-Zyklus wie die Bit-0-Flanke erkennt.
   magna3_to_local_copy:
-    alias: "MAGNA3: Zurück zu Lokal (Setpoint übernehmen)"
+    alias: "MAGNA3: Zurück zu Lokal (Sollwert übernehmen)"
     sequence:
       - action: modbus.write_register
         data:
@@ -1253,7 +1253,7 @@ script:
       - delay: 2
       - action: persistent_notification.create
         data:
-          message: "MAGNA3 auf Lokal — aktueller Setpoint übernommen"
+          message: "MAGNA3 auf Lokal — aktueller Sollwert übernommen"
           title: "MAGNA3"
 
   # Alarm Reset
