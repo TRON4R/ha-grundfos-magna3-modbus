@@ -48,11 +48,10 @@ All sensors and registers have been carefully defined with correct and complete 
 > **German version:** All entity names, automation texts and comments in German: `grundfos_magna3.de.yaml` and `dashboard_card.de.yaml`.
 
 ## Dashboard Card (optional)
-
-<p align="center">
-  <img src="images/dashboard_screenshot.png" alt="MAGNA3 Dashboard"/>
 </p>
 (Sorry for the German screenshot. The Dashboard is available in English, but I can only have one YAML installed)
+<p align="center">
+  <img src="images/dashboard_screenshot.png" alt="MAGNA3 Dashboard"/>
 </p>
 The file `dashboard_card.yaml` contains a ready-to-use Lovelace card with gauges, control buttons and status indicators.
 
