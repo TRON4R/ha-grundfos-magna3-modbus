@@ -1,5 +1,11 @@
 # Changelog
 
+## v4.3.1 (2026-05-11)
+
+German-only release — no changes to the English YAML or dashboard.
+
+- "HA-Steuerung starten" tooltip: changed remaining "Setpoint-Slider" to "Sollwert-Slider" (consistency follow-up to v4.3, where the other two tooltips were already converted)
+
 ## v4.3 (2026-05-11)
 
 German-only release — no changes to the English YAML or dashboard.

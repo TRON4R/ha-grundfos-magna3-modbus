@@ -1,5 +1,9 @@
 # Changelog
 
+## v4.3.1 (2026-05-11)
+
+- Tooltip „HA-Steuerung starten": noch verbliebenes „Setpoint-Slider" zu „Sollwert-Slider" gemacht (Konsistenz-Nachzug zu v4.3, bei der die anderen beiden Tooltips schon umgestellt wurden)
+
 ## v4.3 (2026-05-11)
 
 - **Regelungsart-Anzeige vollständig auf Deutsch übersetzt** (`sensor.magna3_regelungsart`). Bisher waren nur Proportionaldruck und die Markennamen (AUTOADAPT, FLOWADAPT) deutsch; Mode 4 zeigte z.B. „Constant Pressure" statt „Konstantdruck". Übersetzt sind jetzt alle Modes 0, 1, 3, 4, 5, 7, 8, 10, 130. Markennamen (AUTOADAPT, FLOWADAPT, AUTOADAPT(CP)) bleiben unverändert.

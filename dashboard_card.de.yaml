@@ -198,7 +198,7 @@ cards:
         tooltip:
           content: >-
             HA übernimmt die Steuerung per Modbus. Pumpe läuft weiter (bzw. wird gestartet).
-            Die Setpoint-Slider und Buttons im Dashboard steuern jetzt die MAGNA3.
+            Die Sollwert-Slider und Buttons im Dashboard steuern jetzt die MAGNA3.
           placement: bottom
           arrow: true
         styles:
