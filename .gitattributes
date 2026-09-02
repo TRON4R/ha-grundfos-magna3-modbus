@@ -1,0 +1,10 @@
+# Line endings, independent of each contributor's core.autocrlf setting:
+# LF in the repository AND in every working tree. Without this, a Windows
+# contributor whose git is not set to autocrlf=true commits CRLF, and the
+# diff shows the whole file as rewritten.
+* text=auto eol=lf
+
+# Binaries must never be converted. text=auto already detects them, but
+# being explicit keeps it obvious.
+*.png binary
+*.db  binary
