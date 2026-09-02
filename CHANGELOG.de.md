@@ -1,5 +1,23 @@
 # Changelog
 
+## v4.3.3 (2026-09-02)
+
+**Bugfix:** `sensor.magna3_sollwert_meter` ("MAGNA3 Sollwert (Meter)") wurde `unknown`, sobald eines der zugrundeliegenden Modbus-Register (`sensor.magna3_sensor_maximum`, `sensor.magna3_sollwertbereich_max` u. a.) zeitweise aussetzte.
+
+Ursache: Das Template gab im Fehlerfall den **Text `unavailable`** im `state` aus. Für einen numerischen Sensor (`device_class: distance`, `state_class: measurement`) ist das ein ungültiger Wert — Home Assistant verwirft ihn (`Received invalid sensor state: unavailable … expected a number`) und setzt den Sensor auf `unknown`.
+
+Fix: Die Fallunterscheidung wurde aus dem `state` in einen separaten `availability:`-Block verschoben. Der `state` rendert jetzt nur noch die Zahl; bei fehlenden Quellen wird der Sensor regulär `unavailable` statt `unknown`, und der Log-Fehler verschwindet. Die Umrechnungsformel selbst ist unverändert.
+
+- Betrifft beide YAMLs (`grundfos_magna3.de.yaml` und `grundfos_magna3.yaml`).
+
+**Bugfix 2:** `script.magna3_set_max_flow_limit` brach bei einem Aufruf **ohne** Parameter mit einem Template-Fehler ab.
+
+Ursache: Der Fallback las `input_number.magna3_max_flow_limit` — diesen Helfer liefert das Paket bewusst nur auskommentiert mit —, und das `| float` hatte keinen Default. `states()` liefert für eine nicht existierende Entität `unknown`, worauf `| float` ohne Default wirft.
+
+Fix: Der Wert wird jetzt in einem `variables:`-Block ermittelt (Parameter, sonst Helfer, sonst `-1`), und eine vorangestellte `condition: template` bricht bei `< 0` sauber ab, statt 0 m³/h in Register 00106 zu schreiben. Wer die optionale `input_number` einkommentiert, bekommt unverändert das ursprüngliche Verhalten.
+
+- Betrifft beide YAMLs.
+
 ## v4.3.2 (2026-05-11)
 
 Vollständiger „Setpoint → Sollwert"-Konsistenz-Durchgang in der DE-YAML — Nachzug zu v4.3 / v4.3.1, die nur die Dashboard-Tooltips erfasst hatten.

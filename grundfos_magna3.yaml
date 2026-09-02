@@ -1,7 +1,7 @@
 # ==============================================================================
 # GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration
 # ==============================================================================
-# Version:       v4.3.2 (2026-05-11)
+# Version:       v4.3.3 (2026-09-02)
 # CIM 500 Modbus TCP Configuration
 # Documentation: Grundfos 98367081 05.2025
 # Repo:          https://github.com/TRON4R/ha-grundfos-magna3-modbus
@@ -921,18 +921,24 @@ template:
         unit_of_measurement: "m"
         device_class: distance
         state_class: measurement
-        state: >
+        # Sources are Modbus registers that can drop out intermittently.
+        # When sources are missing the sensor becomes "unavailable" the
+        # proper way instead of rendering the text "unavailable" in state
+        # (invalid for a numeric sensor -> previously turned into "unknown").
+        availability: >
           {% set sp = states('sensor.magna3_user_setpoint') | float(-1) %}
           {% set s_max = states('sensor.magna3_feedback_sensor_max') | float(0) %}
           {% set r_min_pct = states('sensor.magna3_setpoint_range_min') | float(0) %}
           {% set r_max_pct = states('sensor.magna3_setpoint_range_max') | float(0) %}
-          {% if sp < 0 or s_max <= 0 or r_max_pct <= r_min_pct %}
-            unavailable
-          {% else %}
-            {% set rmin = (r_min_pct / 100) * s_max %}
-            {% set rmax = (r_max_pct / 100) * s_max %}
-            {{ ((sp / 100) * (rmax - rmin) + rmin) | round(2) }}
-          {% endif %}
+          {{ sp >= 0 and s_max > 0 and r_max_pct > r_min_pct }}
+        state: >
+          {% set sp = states('sensor.magna3_user_setpoint') | float(0) %}
+          {% set s_max = states('sensor.magna3_feedback_sensor_max') | float(0) %}
+          {% set r_min_pct = states('sensor.magna3_setpoint_range_min') | float(0) %}
+          {% set r_max_pct = states('sensor.magna3_setpoint_range_max') | float(0) %}
+          {% set rmin = (r_min_pct / 100) * s_max %}
+          {% set rmax = (r_max_pct / 100) * s_max %}
+          {{ ((sp / 100) * (rmax - rmin) + rmin) | round(2) }}
         icon: mdi:ruler
       
       - name: "MAGNA3 Pump RTC"
@@ -1311,9 +1317,10 @@ script:
           mode: 4
   
   # --- Optional: Set FLOWLIMIT (Register 00106) ---
-  # NOTE: This script is currently not called from the UI,
-  # as the corresponding input_number is commented out.
-  # Call manually with explicit parameter only, e.g.:
+  # NOTE: This script is not operated from the UI — the corresponding
+  # input_number above is deliberately commented out. The fallback below
+  # only applies if it is enabled; otherwise the script aborts cleanly.
+  # Call with an explicit parameter, e.g.:
   #   action: script.magna3_set_max_flow_limit
   #   data:
   #     limit_m3h: 2.5  # Max. flow rate in m³/h
@@ -1323,15 +1330,24 @@ script:
       limit_m3h:
         description: "Max flow in m3/h (e.g. 2.5)"
         example: "2.5"
+    variables:
+      limit: >
+        {% if limit_m3h is defined %}
+          {{ limit_m3h | float(-1) }}
+        {% else %}
+          {{ states('input_number.magna3_max_flow_limit') | float(-1) }}
+        {% endif %}
     sequence:
+      # Abort cleanly without a valid value instead of writing 0 m3/h as the limit.
+      # (numeric_state is not an option: it needs an entity_id, limit is a variable.)
+      - condition: template
+        value_template: "{{ limit | float(-1) >= 0 }}"
       - action: modbus.write_register
         data:
           hub: Grundfos_MAGNA3
           address: 105  # Register 00106
           slave: 1
-          value: >
-            {% set limit = limit_m3h | float if limit_m3h is defined else states('input_number.magna3_max_flow_limit') | float %}
-            {{ (limit * 100) | int }}
+          value: "{{ (limit | float(0) * 100) | int }}"
 
   # --- WARNING: PID parameters - EXPERTS ONLY! ---
   # magna3_set_pid_kp:

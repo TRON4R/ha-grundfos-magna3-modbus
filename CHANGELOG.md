@@ -1,5 +1,23 @@
 # Changelog
 
+## v4.3.3 (2026-09-02)
+
+**Bugfix:** `sensor.magna3_setpoint_meter` ("MAGNA3 Actual Setpoint (m)") turned `unknown` whenever one of the underlying Modbus registers (`sensor.magna3_feedback_sensor_max`, `sensor.magna3_setpoint_range_max`, etc.) dropped out intermittently.
+
+Cause: on the error path the template rendered the **text `unavailable`** in `state`. For a numeric sensor (`device_class: distance`, `state_class: measurement`) that is an invalid value — Home Assistant rejects it (`Received invalid sensor state: unavailable … expected a number`) and sets the sensor to `unknown`.
+
+Fix: the guard was moved out of `state` into a dedicated `availability:` block. `state` now renders only the number; when sources are missing the sensor becomes `unavailable` instead of `unknown` and the log error disappears. The conversion formula itself is unchanged.
+
+- Affects both YAMLs (`grundfos_magna3.yaml` and `grundfos_magna3.de.yaml`).
+
+**Bugfix 2:** `script.magna3_set_max_flow_limit` aborted with a template error when called **without** a parameter.
+
+Cause: the fallback read `input_number.magna3_max_flow_limit` — a helper the package deliberately ships commented out — and the `| float` had no default. `states()` returns `unknown` for a non-existent entity, which an undefaulted `| float` rejects.
+
+Fix: the value is now built in a `variables:` block (parameter, else helper, else `-1`), and a leading `condition: template` aborts cleanly at `< 0` instead of writing 0 m3/h to register 00106. Uncommenting the optional `input_number` restores the original fallback behaviour unchanged.
+
+- Affects both YAMLs.
+
 ## v4.3.2 (2026-05-11)
 
 German-only release — no changes to the English YAML or dashboard.
