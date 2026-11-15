@@ -1,7 +1,7 @@
 # ==============================================================================
 # GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration
 # ==============================================================================
-# Version:       v4.3.3 (2026-09-02)
+# Version:       v4.3.4 (2026-11-15)
 # CIM 500 Modbus TCP Konfiguration
 # Dokumentation: Grundfos 98367081 05.2025
 # Repo:          https://github.com/TRON4R/ha-grundfos-magna3-modbus
@@ -217,8 +217,11 @@ modbus:
         input_type: input
         data_type: uint16
         slave: 1
-        scan_interval: 3600
-        # 0=bar, 2=m, 6=m³/h, 10=°C
+        scan_interval: 300  # nach Regelungsart-Wechsel zusaetzlich sofort (Automation magna3_refresh_sensor_config)
+        # Einheiten-Code laut Grundfos 98367081: 0=bar, 1=mbar, 2=m, 3=kPa, 4=psi, 5=ft,
+        # 6=m³/h, 7=m³/s, 8=l/s, 9=gpm, 10=°C, 11=°F, 12=%, 13=K, 14=W
+        # Haengt von der Regelungsart ab: bei Konstanter Drehzahl/Frequenz (Open Loop)
+        # meldet die Pumpe 12 (%) statt 2 (m), ebenso Sensor Min/Max und Sollwertbereich.
       
       - name: "MAGNA3 Sensor Minimum"
         unique_id: magna3_r00210_sensor_min
@@ -228,7 +231,7 @@ modbus:
         # kein device_class angegeben, da hier die Unit davon abhängt, was in Register 209 steht
         # kein state_class: measurement, weil ein Mindestwert
         slave: 1
-        scan_interval: 3600
+        scan_interval: 300  # nach Regelungsart-Wechsel zusaetzlich sofort (Automation magna3_refresh_sensor_config)
       
       - name: "MAGNA3 Sensor Maximum"
         unique_id: magna3_r00211_sensor_max
@@ -238,7 +241,7 @@ modbus:
         # kein device_class angegeben, da hier die Unit davon abhängt, was in Register 209 steht
         # kein state_class: measurement, weil ein Maximalwert
         slave: 1
-        scan_interval: 3600
+        scan_interval: 300  # nach Regelungsart-Wechsel zusaetzlich sofort (Automation magna3_refresh_sensor_config)
       
       - name: "MAGNA3 Nenn-Frequenz"
         unique_id: magna3_r00212_nom_frequency
@@ -287,7 +290,7 @@ modbus:
         scale: 0.01
         precision: 1
         slave: 1
-        scan_interval: 3600
+        scan_interval: 300  # nach Regelungsart-Wechsel zusaetzlich sofort (Automation magna3_refresh_sensor_config)
       
       - name: "MAGNA3 Sollwertbereich Max"
         unique_id: magna3_r00216_setpoint_range_max
@@ -299,7 +302,7 @@ modbus:
         scale: 0.01
         precision: 1
         slave: 1
-        scan_interval: 3600
+        scan_interval: 300  # nach Regelungsart-Wechsel zusaetzlich sofort (Automation magna3_refresh_sensor_config)
       
       
       - name: "MAGNA3 Flow Estimation Status"
@@ -925,12 +928,18 @@ template:
         # Bei fehlenden Quellen wird der Sensor regulaer "unavailable"
         # statt im state den Text "unavailable" zu rendern (= ungueltig
         # fuer einen numerischen Sensor -> wurde sonst zu "unknown").
+        # Nur gueltig, wenn die Pumpe in Metern meldet (Einheit 2) und geregelt
+        # laeuft. Bei Konstanter Drehzahl (0) / Frequenz (1) meldet sie Bereich und
+        # Maximum in %; die Formel ergaebe dann Unsinn (z. B. "43 m").
         availability: >
           {% set sp = states('sensor.magna3_sollwert_benutzer') | float(-1) %}
           {% set s_max = states('sensor.magna3_sensor_maximum') | float(0) %}
           {% set r_min_pct = states('sensor.magna3_sollwertbereich_min') | float(0) %}
           {% set r_max_pct = states('sensor.magna3_sollwertbereich_max') | float(0) %}
-          {{ sp >= 0 and s_max > 0 and r_max_pct > r_min_pct }}
+          {% set einheit = states('sensor.magna3_sensor_einheit') | int(-1) %}
+          {% set modus = states('sensor.magna3_regelungsart_code') | int(-1) %}
+          {{ sp >= 0 and s_max > 0 and r_max_pct > r_min_pct
+             and einheit == 2 and modus not in [-1, 0, 1] }}
         state: >
           {% set sp = states('sensor.magna3_sollwert_benutzer') | float(0) %}
           {% set s_max = states('sensor.magna3_sensor_maximum') | float(0) %}
@@ -1162,14 +1171,23 @@ script:
           s_max: "{{ states('sensor.magna3_sensor_maximum') | float(0) }}"
           r_min_pct: "{{ states('sensor.magna3_sollwertbereich_min') | float(0) }}"
           r_max_pct: "{{ states('sensor.magna3_sollwertbereich_max') | float(0) }}"
+          einheit: "{{ states('sensor.magna3_sensor_einheit') | int(-1) }}"
+          modus: "{{ states('sensor.magna3_regelungsart_code') | int(-1) }}"
+      # Nur umrechnen, wenn die Pumpe in Metern meldet und geregelt laeuft
       - condition: template
-        value_template: "{{ s_max > 0 and r_max_pct > r_min_pct }}"
+        value_template: >
+          {{ s_max > 0 and r_max_pct > r_min_pct
+             and einheit == 2 and modus not in [-1, 0, 1] }}
       - variables:
           rmin: "{{ (r_min_pct / 100) * s_max }}"
           rmax: "{{ (r_max_pct / 100) * s_max }}"
           prozent: "{{ ((m - rmin) / (rmax - rmin)) * 100 }}"
-          # Clamp auf 0-100% und umrechnen in Registerwert (0-10000)
-          reg_value: "{{ [0, [10000, (prozent * 100) | int] | min] | max }}"
+      # Ausserhalb 0-100 % abbrechen statt begrenzen: ein solcher Wert zeigt
+      # falsche Eingangsdaten an, und Begrenzen haette 0 % geschrieben.
+      - condition: template
+        value_template: "{{ 0 <= prozent <= 100 }}"
+      - variables:
+          reg_value: "{{ (prozent * 100) | round(0) | int }}"
       - action: modbus.write_register
         data:
           hub: Grundfos_MAGNA3
@@ -1197,10 +1215,57 @@ script:
               {{ states('input_number.magna3_regelungsart') | int }}
             {% endif %}
   
+  # Bus-Kontext vorbelegen, bevor die Pumpe nach Remote wechselt (intern, von
+  # Remote Start, Remote Stop und Alarm-Reset aufgerufen).
+  # Die Vorgabe-Register 00102 (Regelungsart) und 00104 (Sollwert) stehen nach
+  # jedem Aus/Ein der Pumpe auf 0. Ohne Vorbelegung liefe die Pumpe in Remote mit
+  # Regelungsart 0 (Konstante Drehzahl) und 0 % Sollwert, und ein anschliessendes
+  # "Zurueck zu Lokal (Sollwert uebernehmen)" wuerde das dauerhaft ins EEPROM
+  # schreiben. Deshalb werden die aktiven Werte (Reg 00203, Reg 00338) in die
+  # Vorgabe-Register kopiert. Die Pumpe laeuft nach dem Wechsel also genau so
+  # weiter wie vorher. Rueckgabe: {"ok": true/false}.
+  magna3_prepare_remote:
+    alias: "MAGNA3: Remote vorbereiten (intern)"
+    sequence:
+      - variables:
+          modus: "{{ states('sensor.magna3_regelungsart_code') | int(-1) }}"
+          sollwert: "{{ states('sensor.magna3_sollwert_benutzer') | float(-1) }}"
+          ok: "{{ modus >= 0 and sollwert >= 0 }}"
+          ergebnis: "{{ {'ok': ok} }}"
+      - if:
+          - condition: template
+            value_template: "{{ not ok }}"
+        then:
+          - action: persistent_notification.create
+            data:
+              title: "MAGNA3"
+              message: >-
+                Wechsel nach Remote abgebrochen: Regelungsart oder Sollwert der
+                Pumpe sind gerade nicht verfügbar. Bitte in einer Minute erneut versuchen.
+        else:
+          - action: modbus.write_register
+            data:
+              hub: Grundfos_MAGNA3
+              address: 101  # Register 00102 = aktive Regelungsart
+              slave: 1
+              value: "{{ modus }}"
+          - action: modbus.write_register
+            data:
+              hub: Grundfos_MAGNA3
+              address: 103  # Register 00104 = aktiver Sollwert
+              slave: 1
+              value: "{{ (sollwert * 100) | round(0) | int }}"
+      - stop: "Remote vorbereitet"
+        response_variable: ergebnis
+
   # Remote Start
   magna3_start_remote:
     alias: "MAGNA3: Remote Start"
     sequence:
+      - action: script.magna3_prepare_remote
+        response_variable: vorbereitung
+      - condition: template
+        value_template: "{{ vorbereitung.ok }}"
       - action: modbus.write_register
         data:
           hub: Grundfos_MAGNA3
@@ -1212,6 +1277,10 @@ script:
   magna3_stop_remote:
     alias: "MAGNA3: Remote Stop"
     sequence:
+      - action: script.magna3_prepare_remote
+        response_variable: vorbereitung
+      - condition: template
+        value_template: "{{ vorbereitung.ok }}"
       - action: modbus.write_register
         data:
           hub: Grundfos_MAGNA3
@@ -1266,6 +1335,11 @@ script:
   magna3_reset_alarm:
     alias: "MAGNA3: Alarm zurücksetzen"
     sequence:
+      # Der Reset schaltet die Pumpe nach Remote, daher vorher den Bus-Kontext vorbelegen
+      - action: script.magna3_prepare_remote
+        response_variable: vorbereitung
+      - condition: template
+        value_template: "{{ vorbereitung.ok }}"
       # Rising Edge: 0 → 1
       - action: modbus.write_register
         data:
@@ -1467,23 +1541,40 @@ automation:
           message: "Motorstrom über 5A: {{ states('sensor.magna3_motorstrom') }} A"
   
   # Sollwert-Sync: Input Number → Modbus. Dafür zuständig, die Werte aus dem Input-Bereich an die Pumpe zu melden
+  # Geschrieben wird nur, wenn der Slider vom Pumpenwert abweicht. Setzt die
+  # Automation "Beide Slider aus Pumpenwert aktualisieren" einen Slider auf den
+  # Pumpenwert, entsteht so kein Echo-Schreibvorgang zurueck zur Pumpe. Ist der
+  # Pumpenwert nicht verfuegbar, wird ebenfalls nicht geschrieben.
   - id: magna3_sync_setpoint_percent
     alias: "MAGNA3: Sync Sollwert %"
     trigger:
       - platform: state
         entity_id: input_number.magna3_sollwert_prozent
+    condition:
+      - condition: template
+        value_template: >
+          {% set pumpe = states('sensor.magna3_sollwert_benutzer') | float(none) %}
+          {{ pumpe is not none
+             and (trigger.to_state.state | float(0) - pumpe) | abs > 0.05 }}
     action:
       - action: script.magna3_set_sollwert_prozent
-  
+
   - id: magna3_sync_setpoint_meter
     alias: "MAGNA3: Sync Sollwert m"
     trigger:
       - platform: state
         entity_id: input_number.magna3_sollwert_meter
+    condition:
+      - condition: template
+        value_template: >
+          {% set pumpe = states('sensor.magna3_sollwert_meter') | float(none) %}
+          {{ pumpe is not none
+             and (trigger.to_state.state | float(0) - pumpe) | abs > 0.005 }}
     action:
       - action: script.magna3_set_sollwert_meter
 
   # Nach jedem HA-Start: 30 Sekunden warten (bis Modbus-Daten da sind), dann werden beide Slider/Boxen auf die aktuellen Pumpenwerte gesetzt.
+  # Ein Slider wird nur gesetzt, wenn sein Pumpenwert verfuegbar ist; sonst wuerde er auf 0 springen.
   - id: magna3_sync_slider_on_start
     alias: "MAGNA3: Sollwerte bei Start synchronisieren"
     trigger:
@@ -1491,17 +1582,31 @@ automation:
         event: start
     action:
       - delay: 30  # Warten bis Modbus-Sensoren geladen
-      - action: input_number.set_value
-        target:
-          entity_id: input_number.magna3_sollwert_prozent
-        data:
-          value: "{{ states('sensor.magna3_sollwert_benutzer') | float(0) }}"
-      - action: input_number.set_value
-        target:
-          entity_id: input_number.magna3_sollwert_meter
-        data:
-          value: "{{ states('sensor.magna3_sollwert_meter') | float(0) }}"
-        
+      - if:
+          - condition: not
+            conditions:
+              - condition: state
+                entity_id: sensor.magna3_sollwert_benutzer
+                state: ["unavailable", "unknown"]
+        then:
+          - action: input_number.set_value
+            target:
+              entity_id: input_number.magna3_sollwert_prozent
+            data:
+              value: "{{ states('sensor.magna3_sollwert_benutzer') | float(0) }}"
+      - if:
+          - condition: not
+            conditions:
+              - condition: state
+                entity_id: sensor.magna3_sollwert_meter
+                state: ["unavailable", "unknown"]
+        then:
+          - action: input_number.set_value
+            target:
+              entity_id: input_number.magna3_sollwert_meter
+            data:
+              value: "{{ states('sensor.magna3_sollwert_meter') | float(0) }}"
+
   # Trigger ist die Pumpen-Rückmeldung. Wenn der User einen Slider bewegt → Script schreibt zur Pumpe → Pumpe meldet neuen Wert → Slider werden aktualisiert
   - id: magna3_sync_both_sliders_from_pump
     alias: "MAGNA3: Beide Slider aus Pumpenwert aktualisieren"
@@ -1519,9 +1624,39 @@ automation:
           entity_id: input_number.magna3_sollwert_prozent
         data:
           value: "{{ states('sensor.magna3_sollwert_benutzer') | float(0) }}"
-      - action: input_number.set_value
+      # Meter-Slider nur setzen, wenn die Meter-Anzeige gueltig ist (nicht bei Open Loop)
+      - if:
+          - condition: not
+            conditions:
+              - condition: state
+                entity_id: sensor.magna3_sollwert_meter
+                state: ["unavailable", "unknown"]
+        then:
+          - action: input_number.set_value
+            target:
+              entity_id: input_number.magna3_sollwert_meter
+            data:
+              value: "{{ states('sensor.magna3_sollwert_meter') | float(0) }}"
+
+  # Einheit, Sensorbereich und Sollwertbereich haengen von der Regelungsart ab
+  # (z. B. m bei Proportionaldruck, % bei Konstanter Drehzahl). Sie werden nur
+  # alle 5 min abgefragt; bei jedem Wechsel der Regelungsart (auch nach einem
+  # Aus/Ein der Pumpe) daher sofort nachlesen.
+  - id: magna3_refresh_sensor_config
+    alias: "MAGNA3: Sensor-Konfiguration bei Regelungsart-Wechsel nachlesen"
+    mode: restart
+    trigger:
+      - platform: state
+        entity_id: sensor.magna3_regelungsart_code
+        not_to: ["unavailable", "unknown"]
+    action:
+      - delay: 5  # der Pumpe Zeit geben, die Register umzustellen
+      - action: homeassistant.update_entity
         target:
-          entity_id: input_number.magna3_sollwert_meter
-        data:
-          value: "{{ states('sensor.magna3_sollwert_meter') | float(0) }}"
+          entity_id:
+            - sensor.magna3_sensor_einheit
+            - sensor.magna3_sensor_minimum
+            - sensor.magna3_sensor_maximum
+            - sensor.magna3_sollwertbereich_min
+            - sensor.magna3_sollwertbereich_max
 

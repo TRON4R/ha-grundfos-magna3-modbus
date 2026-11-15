@@ -197,7 +197,8 @@ cards:
           perform_action: script.magna3_start_remote
         tooltip:
           content: >-
-            HA übernimmt die Steuerung per Modbus. Pumpe läuft weiter (bzw. wird gestartet).
+            HA übernimmt die Steuerung per Modbus. Pumpe läuft mit ihrer aktuellen
+            Regelungsart und ihrem Sollwert weiter (bzw. wird gestartet).
             Die Sollwert-Slider und Buttons im Dashboard steuern jetzt die MAGNA3.
           placement: bottom
           arrow: true

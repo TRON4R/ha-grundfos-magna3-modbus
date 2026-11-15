@@ -1,5 +1,36 @@
 # Changelog
 
+## v4.3.4 (2026-11-15)
+
+**Bugfix: Remote Start + „Zurück zu Lokal (Sollwert übernehmen)" speicherte konstante Drehzahl/Frequenz.**
+
+Ursache: Die Vorgabe-Register 00102 (Regelungsart) und 00104 (Sollwert) stehen nach jedem Aus/Ein der Pumpe auf 0. `script.magna3_start_remote` schrieb nur Reg 00101 = 3; in Remote lief die Pumpe dann mit Regelungsart 0 (Konstante Drehzahl) und 0 % Sollwert. Ein anschließendes CopyToLocal schrieb das dauerhaft ins EEPROM (lokal danach „Konstante Frequenz"). Beobachtet ab 13.11.2026: zwei Tage Open Loop statt Proportionaldruck.
+
+Fix: Neues internes Script `script.magna3_prepare_remote`. Es kopiert die aktiven Werte (Reg 00203 Regelungsart, Reg 00338 Sollwert) in die Vorgabe-Register 00102/00104, bevor Remote Start, Remote Stop oder Alarm-Reset (der ebenfalls nach Remote schaltet) Reg 00101 setzen. Die Pumpe läuft nach dem Wechsel also genau so weiter wie vorher. Sind die Werte nicht verfügbar, bricht es ab und legt eine Benachrichtigung an. Regelungsart und Sollwert ändert man wie bisher nach dem Remote Start.
+
+**Bugfix: `sensor.magna3_sollwert_meter` zeigte bei Open Loop Unsinn (z. B. „43 m"), und das Meter-Script schrieb 0 %.**
+
+Ursache: Bei Konstanter Drehzahl/Frequenz meldet die Pumpe Einheit (Reg 00209 = 12, also %), Sensor-Maximum und Sollwertbereich in Prozent. Das Template prüfte die Einheit nicht, und die Register wurden nur stündlich gelesen. `script.magna3_set_sollwert_meter` begrenzte das negative Rechenergebnis auf 0 % und schrieb es.
+
+Fix:
+- Der Meter-Sensor ist nur verfügbar, wenn Reg 00209 = 2 (m) ist und eine geregelte Betriebsart läuft (Reg 00203 nicht 0/1).
+- Das Meter-Script prüft dieselben Bedingungen und bricht bei einem Ergebnis außerhalb von 0–100 % ab, statt zu begrenzen.
+- Reg 00209, 00210, 00211, 00215 und 00216 werden alle 5 min statt stündlich gelesen. Die neue Automation `magna3_refresh_sensor_config` liest sie zusätzlich 5 s nach jedem Wechsel der Regelungsart sofort nach (`homeassistant.update_entity`). Reg 00212–00214 (Frequenzen, Hardware-Konstanten) bleiben bei 3600 s.
+- Kommentar an Reg 00209: vollständige Liste der Einheiten-Codes laut Grundfos 98367081 (0–14).
+
+**Bugfix: Echo-Schreibvorgänge der Slider.**
+
+Ursache: „Beide Slider aus Pumpenwert aktualisieren" setzt bei jeder Pumpenmeldung beide `input_number`; deren Sync-Automationen schrieben die Werte sofort zurück zur Pumpe – auch falsche Werte (siehe oben) oder 0 nach einem HA-Start, solange die Pumpe noch nicht verfügbar war.
+
+Fix:
+- Die Sync-Automationen schreiben nur noch, wenn der Slider vom Pumpenwert abweicht (> 0,05 % bzw. > 0,005 m) und der Pumpenwert verfügbar ist.
+- Start-Sync und Pumpen-Sync setzen einen Slider nur, wenn sein Pumpenwert verfügbar ist.
+
+Sonstiges:
+- Betrifft beide YAMLs.
+- Dashboard-Tooltip „HA-Steuerung starten" ergänzt.
+- `entities.*.md`: neue Entitäten sowie die bisher fehlenden `script.magna3_to_local_copy` und `script.magna3_enable_constant_pressure` nachgetragen.
+
 ## v4.3.3 (2026-09-02)
 
 **Bugfix:** `sensor.magna3_sollwert_meter` ("MAGNA3 Sollwert (Meter)") wurde `unknown`, sobald eines der zugrundeliegenden Modbus-Register (`sensor.magna3_sensor_maximum`, `sensor.magna3_sollwertbereich_max` u. a.) zeitweise aussetzte.

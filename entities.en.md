@@ -111,13 +111,16 @@ input_number.magna3_control_mode
 script.magna3_set_setpoint_percent
 script.magna3_set_setpoint_m
 script.magna3_set_control_mode
+script.magna3_prepare_remote
 script.magna3_start_remote
 script.magna3_stop_remote
 script.magna3_to_local
+script.magna3_to_local_copy
 script.magna3_reset_alarm
 script.magna3_enable_autoadapt
 script.magna3_enable_flowadapt
 script.magna3_enable_proportional
+script.magna3_enable_constant_pressure
 script.magna3_set_max_flow_limit
 # script.magna3_set_pid_kp
 # script.magna3_set_pid_ti
@@ -132,3 +135,4 @@ MAGNA3: Sync Setpoint %  ->  automation.magna3_sync_setpoint
 MAGNA3: Sync Setpoint m  ->  automation.magna3_sync_setpoint_m
 MAGNA3: Sync Setpoints on Start  ->  automation.magna3_sync_setpoints_on_start
 MAGNA3: Update Both Sliders from Pump Value  ->  automation.magna3_update_both_sliders_from_pump_value
+MAGNA3: Refresh Sensor Config on Control Mode Change  ->  automation.magna3_refresh_sensor_config_on_control_mode_change

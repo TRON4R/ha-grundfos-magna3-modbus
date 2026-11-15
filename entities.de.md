@@ -111,13 +111,16 @@ input_number.magna3_regelungsart
 script.magna3_set_sollwert_prozent
 script.magna3_set_sollwert_meter
 script.magna3_set_regelungsart
+script.magna3_prepare_remote
 script.magna3_start_remote
 script.magna3_stop_remote
 script.magna3_to_local
+script.magna3_to_local_copy
 script.magna3_reset_alarm
 script.magna3_enable_autoadapt
 script.magna3_enable_flowadapt
 script.magna3_enable_proportional
+script.magna3_enable_constant_pressure
 script.magna3_set_max_flow_limit
 # script.magna3_set_pid_kp
 # script.magna3_set_pid_ti
@@ -132,3 +135,4 @@ MAGNA3: Sync Sollwert %  →  automation.magna3_sync_sollwert
 MAGNA3: Sync Sollwert m  →  automation.magna3_sync_sollwert_m
 MAGNA3: Sollwerte bei Start synchronisieren  →  automation.magna3_sollwerte_bei_start_synchronisieren
 MAGNA3: Beide Slider aus Pumpenwert aktualisieren  →  automation.magna3_beide_slider_aus_pumpenwert_aktualisieren
+MAGNA3: Sensor-Konfiguration bei Regelungsart-Wechsel nachlesen  →  automation.magna3_sensor_konfiguration_bei_regelungsart_wechsel_nachlesen

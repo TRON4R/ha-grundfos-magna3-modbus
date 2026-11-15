@@ -1,5 +1,36 @@
 # Changelog
 
+## v4.3.4 (2026-11-15)
+
+**Bugfix: Remote Start + "Switch to Local (adopt setpoint)" stored constant speed/frequency.**
+
+Cause: the request registers 00102 (control mode) and 00104 (setpoint) read 0 after every power cycle of the pump. `script.magna3_start_remote` only wrote reg 00101 = 3, so in Remote the pump ran with control mode 0 (constant speed) and a 0 % setpoint. A subsequent CopyToLocal stored that permanently in the EEPROM (locally "constant frequency" afterwards). Observed from 2026-11-13: two days of open loop instead of proportional pressure.
+
+Fix: new internal script `script.magna3_prepare_remote`. It copies the active values (reg 00203 control mode, reg 00338 setpoint) into the request registers 00102/00104 before Remote Start, Remote Stop or Reset Alarm (which also switches to Remote) write reg 00101. After the switch the pump keeps running exactly as before. If the values are unavailable, it aborts and creates a notification. Control mode and setpoint are changed after Remote Start, as before.
+
+**Bugfix: `sensor.magna3_actual_setpoint_m` showed nonsense in open loop (e.g. "43 m"), and the meter script wrote 0 %.**
+
+Cause: in constant speed/frequency the pump reports the unit (reg 00209 = 12, i.e. %), sensor maximum and setpoint range in percent. The template did not check the unit, and the registers were only polled hourly. `script.magna3_set_setpoint_m` clamped the negative result to 0 % and wrote it.
+
+Fix:
+- The meter sensor is only available while reg 00209 = 2 (m) and a closed-loop mode runs (reg 00203 not 0/1).
+- The meter script checks the same conditions and aborts on a result outside 0–100 % instead of clamping.
+- Regs 00209, 00210, 00211, 00215 and 00216 are polled every 5 min instead of hourly. The new automation `magna3_refresh_sensor_config` additionally re-reads them 5 s after every control mode change (`homeassistant.update_entity`). Regs 00212–00214 (frequencies, hardware constants) stay at 3600 s.
+- Comment on reg 00209: full list of unit codes per Grundfos 98367081 (0–14).
+
+**Bugfix: echo writes from the sliders.**
+
+Cause: "Update Both Sliders from Pump Value" sets both `input_number`s on every pump report; their sync automations wrote the values straight back to the pump – including wrong values (see above) or 0 after an HA start while the pump was not yet available.
+
+Fix:
+- The sync automations only write when the slider differs from the pump value (> 0.05 % or > 0.005 m) and the pump value is available.
+- The start sync and the pump sync only set a slider while its pump value is available.
+
+Other:
+- Affects both YAMLs.
+- Dashboard tooltip "Start HA Control" extended.
+- `entities.*.md`: new entities added, plus the previously missing `script.magna3_to_local_copy` and `script.magna3_enable_constant_pressure`.
+
 ## v4.3.3 (2026-09-02)
 
 **Bugfix:** `sensor.magna3_setpoint_meter` ("MAGNA3 Actual Setpoint (m)") turned `unknown` whenever one of the underlying Modbus registers (`sensor.magna3_feedback_sensor_max`, `sensor.magna3_setpoint_range_max`, etc.) dropped out intermittently.

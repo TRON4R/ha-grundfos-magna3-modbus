@@ -1,7 +1,7 @@
 # ==============================================================================
 # GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration
 # ==============================================================================
-# Version:       v4.3.3 (2026-09-02)
+# Version:       v4.3.4 (2026-11-15)
 # CIM 500 Modbus TCP Configuration
 # Documentation: Grundfos 98367081 05.2025
 # Repo:          https://github.com/TRON4R/ha-grundfos-magna3-modbus
@@ -217,8 +217,11 @@ modbus:
         input_type: input
         data_type: uint16
         slave: 1
-        scan_interval: 3600
-        # 0=bar, 2=m, 6=m³/h, 10=°C
+        scan_interval: 300  # additionally re-read right after a control mode change (automation magna3_refresh_sensor_config)
+        # Unit code per Grundfos 98367081: 0=bar, 1=mbar, 2=m, 3=kPa, 4=psi, 5=ft,
+        # 6=m³/h, 7=m³/s, 8=l/s, 9=gpm, 10=°C, 11=°F, 12=%, 13=K, 14=W
+        # Depends on the control mode: in constant speed/frequency (open loop) the
+        # pump reports 12 (%) instead of 2 (m), and so do sensor min/max and setpoint range.
       
       - name: "MAGNA3 Feedback Sensor Min"
         unique_id: magna3_r00210_sensor_min
@@ -228,7 +231,7 @@ modbus:
         # no device_class, as the unit depends on register 209
         # no state_class: measurement, this is a minimum value
         slave: 1
-        scan_interval: 3600
+        scan_interval: 300  # additionally re-read right after a control mode change (automation magna3_refresh_sensor_config)
       
       - name: "MAGNA3 Feedback Sensor Max"
         unique_id: magna3_r00211_sensor_max
@@ -238,7 +241,7 @@ modbus:
         # no device_class, as the unit depends on register 209
         # no state_class: measurement, this is a maximum value
         slave: 1
-        scan_interval: 3600
+        scan_interval: 300  # additionally re-read right after a control mode change (automation magna3_refresh_sensor_config)
       
       - name: "MAGNA3 Nominal Frequency"
         unique_id: magna3_r00212_nom_frequency
@@ -287,7 +290,7 @@ modbus:
         scale: 0.01
         precision: 1
         slave: 1
-        scan_interval: 3600
+        scan_interval: 300  # additionally re-read right after a control mode change (automation magna3_refresh_sensor_config)
       
       - name: "MAGNA3 Setpoint Range Max"
         unique_id: magna3_r00216_setpoint_range_max
@@ -299,7 +302,7 @@ modbus:
         scale: 0.01
         precision: 1
         slave: 1
-        scan_interval: 3600
+        scan_interval: 300  # additionally re-read right after a control mode change (automation magna3_refresh_sensor_config)
       
       
       - name: "MAGNA3 Flow Estimation State"
@@ -925,12 +928,18 @@ template:
         # When sources are missing the sensor becomes "unavailable" the
         # proper way instead of rendering the text "unavailable" in state
         # (invalid for a numeric sensor -> previously turned into "unknown").
+        # Only valid while the pump reports in meters (unit 2) and runs a
+        # closed-loop mode. In constant speed (0) / frequency (1) it reports range
+        # and maximum in %, and the formula would yield nonsense (e.g. "43 m").
         availability: >
           {% set sp = states('sensor.magna3_user_setpoint') | float(-1) %}
           {% set s_max = states('sensor.magna3_feedback_sensor_max') | float(0) %}
           {% set r_min_pct = states('sensor.magna3_setpoint_range_min') | float(0) %}
           {% set r_max_pct = states('sensor.magna3_setpoint_range_max') | float(0) %}
-          {{ sp >= 0 and s_max > 0 and r_max_pct > r_min_pct }}
+          {% set einheit = states('sensor.magna3_feedback_sensor_unit') | int(-1) %}
+          {% set modus = states('sensor.magna3_control_mode_code') | int(-1) %}
+          {{ sp >= 0 and s_max > 0 and r_max_pct > r_min_pct
+             and einheit == 2 and modus not in [-1, 0, 1] }}
         state: >
           {% set sp = states('sensor.magna3_user_setpoint') | float(0) %}
           {% set s_max = states('sensor.magna3_feedback_sensor_max') | float(0) %}
@@ -1162,14 +1171,23 @@ script:
           s_max: "{{ states('sensor.magna3_feedback_sensor_max') | float(0) }}"
           r_min_pct: "{{ states('sensor.magna3_setpoint_range_min') | float(0) }}"
           r_max_pct: "{{ states('sensor.magna3_setpoint_range_max') | float(0) }}"
+          einheit: "{{ states('sensor.magna3_feedback_sensor_unit') | int(-1) }}"
+          modus: "{{ states('sensor.magna3_control_mode_code') | int(-1) }}"
+      # Only convert while the pump reports in meters and runs closed loop
       - condition: template
-        value_template: "{{ s_max > 0 and r_max_pct > r_min_pct }}"
+        value_template: >
+          {{ s_max > 0 and r_max_pct > r_min_pct
+             and einheit == 2 and modus not in [-1, 0, 1] }}
       - variables:
           rmin: "{{ (r_min_pct / 100) * s_max }}"
           rmax: "{{ (r_max_pct / 100) * s_max }}"
           prozent: "{{ ((m - rmin) / (rmax - rmin)) * 100 }}"
-          # Clamp to 0-100% and convert to register value (0-10000)
-          reg_value: "{{ [0, [10000, (prozent * 100) | int] | min] | max }}"
+      # Abort outside 0-100 % instead of clamping: such a value means the input
+      # data is wrong, and clamping would have written 0 %.
+      - condition: template
+        value_template: "{{ 0 <= prozent <= 100 }}"
+      - variables:
+          reg_value: "{{ (prozent * 100) | round(0) | int }}"
       - action: modbus.write_register
         data:
           hub: Grundfos_MAGNA3
@@ -1197,10 +1215,57 @@ script:
               {{ states('input_number.magna3_control_mode') | int }}
             {% endif %}
   
+  # Pre-load the bus context before the pump switches to Remote (internal,
+  # called by Remote Start, Remote Stop and Reset Alarm).
+  # The request registers 00102 (control mode) and 00104 (setpoint) read 0
+  # after every power cycle of the pump. Without pre-loading, the pump would
+  # run in Remote with control mode 0 (constant speed) and a 0 % setpoint, and a
+  # subsequent "Switch to Local (adopt setpoint)" would store that permanently
+  # in the EEPROM. So the active values (reg 00203, reg 00338) are copied into
+  # the request registers first; after the switch the pump keeps running exactly
+  # as before. Returns {"ok": true/false}.
+  magna3_prepare_remote:
+    alias: "MAGNA3: Prepare Remote (internal)"
+    sequence:
+      - variables:
+          modus: "{{ states('sensor.magna3_control_mode_code') | int(-1) }}"
+          sollwert: "{{ states('sensor.magna3_user_setpoint') | float(-1) }}"
+          ok: "{{ modus >= 0 and sollwert >= 0 }}"
+          ergebnis: "{{ {'ok': ok} }}"
+      - if:
+          - condition: template
+            value_template: "{{ not ok }}"
+        then:
+          - action: persistent_notification.create
+            data:
+              title: "MAGNA3"
+              message: >-
+                Switch to Remote aborted: the pump's control mode or setpoint is
+                currently unavailable. Please try again in a minute.
+        else:
+          - action: modbus.write_register
+            data:
+              hub: Grundfos_MAGNA3
+              address: 101  # Register 00102 = active control mode
+              slave: 1
+              value: "{{ modus }}"
+          - action: modbus.write_register
+            data:
+              hub: Grundfos_MAGNA3
+              address: 103  # Register 00104 = active setpoint
+              slave: 1
+              value: "{{ (sollwert * 100) | round(0) | int }}"
+      - stop: "Remote prepared"
+        response_variable: ergebnis
+
   # Remote Start
   magna3_start_remote:
     alias: "MAGNA3: Remote Start"
     sequence:
+      - action: script.magna3_prepare_remote
+        response_variable: vorbereitung
+      - condition: template
+        value_template: "{{ vorbereitung.ok }}"
       - action: modbus.write_register
         data:
           hub: Grundfos_MAGNA3
@@ -1212,6 +1277,10 @@ script:
   magna3_stop_remote:
     alias: "MAGNA3: Remote Stop"
     sequence:
+      - action: script.magna3_prepare_remote
+        response_variable: vorbereitung
+      - condition: template
+        value_template: "{{ vorbereitung.ok }}"
       - action: modbus.write_register
         data:
           hub: Grundfos_MAGNA3
@@ -1265,6 +1334,11 @@ script:
   magna3_reset_alarm:
     alias: "MAGNA3: Reset Alarm"
     sequence:
+      # The reset switches the pump to Remote, so pre-load the bus context first
+      - action: script.magna3_prepare_remote
+        response_variable: vorbereitung
+      - condition: template
+        value_template: "{{ vorbereitung.ok }}"
       # Rising Edge: 0 → 1
       - action: modbus.write_register
         data:
@@ -1467,23 +1541,40 @@ automation:
           message: "Motor current above 5A: {{ states('sensor.magna3_motor_current') }} A"
   
   # Setpoint sync: Input Number -> Modbus. Sends UI values to the pump
+  # Writes only when the slider differs from the pump value. When the automation
+  # "Update Both Sliders from Pump Value" sets a slider to the pump value, no echo
+  # write back to the pump happens. Nothing is written while the pump value is
+  # unavailable either.
   - id: magna3_sync_setpoint_percent
     alias: "MAGNA3: Sync Setpoint %"
     trigger:
       - platform: state
         entity_id: input_number.magna3_setpoint_percent
+    condition:
+      - condition: template
+        value_template: >
+          {% set pumpe = states('sensor.magna3_user_setpoint') | float(none) %}
+          {{ pumpe is not none
+             and (trigger.to_state.state | float(0) - pumpe) | abs > 0.05 }}
     action:
       - action: script.magna3_set_setpoint_percent
-  
+
   - id: magna3_sync_setpoint_meter
     alias: "MAGNA3: Sync Setpoint m"
     trigger:
       - platform: state
         entity_id: input_number.magna3_setpoint_m
+    condition:
+      - condition: template
+        value_template: >
+          {% set pumpe = states('sensor.magna3_actual_setpoint_m') | float(none) %}
+          {{ pumpe is not none
+             and (trigger.to_state.state | float(0) - pumpe) | abs > 0.005 }}
     action:
       - action: script.magna3_set_setpoint_m
 
   # After each HA start: wait 30s for Modbus data, then set both sliders to current pump values.
+  # A slider is only set when its pump value is available; otherwise it would jump to 0.
   - id: magna3_sync_slider_on_start
     alias: "MAGNA3: Sync Setpoints on Start"
     trigger:
@@ -1491,17 +1582,31 @@ automation:
         event: start
     action:
       - delay: 30  # Wait for Modbus sensors to load
-      - action: input_number.set_value
-        target:
-          entity_id: input_number.magna3_setpoint_percent
-        data:
-          value: "{{ states('sensor.magna3_user_setpoint') | float(0) }}"
-      - action: input_number.set_value
-        target:
-          entity_id: input_number.magna3_setpoint_m
-        data:
-          value: "{{ states('sensor.magna3_actual_setpoint_m') | float(0) }}"
-        
+      - if:
+          - condition: not
+            conditions:
+              - condition: state
+                entity_id: sensor.magna3_user_setpoint
+                state: ["unavailable", "unknown"]
+        then:
+          - action: input_number.set_value
+            target:
+              entity_id: input_number.magna3_setpoint_percent
+            data:
+              value: "{{ states('sensor.magna3_user_setpoint') | float(0) }}"
+      - if:
+          - condition: not
+            conditions:
+              - condition: state
+                entity_id: sensor.magna3_actual_setpoint_m
+                state: ["unavailable", "unknown"]
+        then:
+          - action: input_number.set_value
+            target:
+              entity_id: input_number.magna3_setpoint_m
+            data:
+              value: "{{ states('sensor.magna3_actual_setpoint_m') | float(0) }}"
+
   # Trigger is pump feedback. User moves slider -> script writes to pump -> pump reports new value -> sliders update
   - id: magna3_sync_both_sliders_from_pump
     alias: "MAGNA3: Update Both Sliders from Pump Value"
@@ -1519,9 +1624,39 @@ automation:
           entity_id: input_number.magna3_setpoint_percent
         data:
           value: "{{ states('sensor.magna3_user_setpoint') | float(0) }}"
-      - action: input_number.set_value
+      # Only set the meter slider while the meter value is valid (not in open loop)
+      - if:
+          - condition: not
+            conditions:
+              - condition: state
+                entity_id: sensor.magna3_actual_setpoint_m
+                state: ["unavailable", "unknown"]
+        then:
+          - action: input_number.set_value
+            target:
+              entity_id: input_number.magna3_setpoint_m
+            data:
+              value: "{{ states('sensor.magna3_actual_setpoint_m') | float(0) }}"
+
+  # Unit, sensor range and setpoint range depend on the control mode (e.g. m in
+  # proportional pressure, % in constant speed). They are only polled every
+  # 5 min, so re-read them right away on every control mode change (including
+  # after a power cycle of the pump).
+  - id: magna3_refresh_sensor_config
+    alias: "MAGNA3: Refresh Sensor Config on Control Mode Change"
+    mode: restart
+    trigger:
+      - platform: state
+        entity_id: sensor.magna3_control_mode_code
+        not_to: ["unavailable", "unknown"]
+    action:
+      - delay: 5  # give the pump time to switch the registers
+      - action: homeassistant.update_entity
         target:
-          entity_id: input_number.magna3_setpoint_m
-        data:
-          value: "{{ states('sensor.magna3_actual_setpoint_m') | float(0) }}"
+          entity_id:
+            - sensor.magna3_feedback_sensor_unit
+            - sensor.magna3_feedback_sensor_min
+            - sensor.magna3_feedback_sensor_max
+            - sensor.magna3_setpoint_range_min
+            - sensor.magna3_setpoint_range_max
 

@@ -197,7 +197,8 @@ cards:
           perform_action: script.magna3_start_remote
         tooltip:
           content: >-
-            HA takes over via Modbus. Pump runs (or starts).
+            HA takes over via Modbus. Pump keeps its current control mode
+            and setpoint and runs (or starts).
             Setpoint slider in HA now controls the pump.
           placement: bottom
           arrow: true
