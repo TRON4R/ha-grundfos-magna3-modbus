@@ -1,7 +1,7 @@
 # ==============================================================================
 # GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration
 # ==============================================================================
-# Version:       v4.3.4 (2026-11-15)
+# Version:       v4.3.5 (2026-11-16)
 # CIM 500 Modbus TCP Configuration
 # Documentation: Grundfos 98367081 05.2025
 # Repo:          https://github.com/TRON4R/ha-grundfos-magna3-modbus
@@ -1608,8 +1608,12 @@ automation:
               value: "{{ states('sensor.magna3_actual_setpoint_m') | float(0) }}"
 
   # Trigger is pump feedback. User moves slider -> script writes to pump -> pump reports new value -> sliders update
+  # The pump is only polled every 15 s, so its value lags up to 15 s behind. While a slider was moved
+  # within the last 20 s (user still adjusting), it is not overwritten; otherwise it would jump back to
+  # a stale intermediate value. Afterwards the then-current pump value applies.
   - id: magna3_sync_both_sliders_from_pump
     alias: "MAGNA3: Update Both Sliders from Pump Value"
+    mode: restart
     trigger:
       - platform: state
         entity_id: sensor.magna3_user_setpoint
@@ -1619,6 +1623,20 @@ automation:
           {{ trigger.to_state.state not in ['unavailable', 'unknown'] }}
     action:
       - delay: 2
+      - repeat:
+          while:
+            - condition: template
+              value_template: >
+                {{ [states.input_number.magna3_setpoint_percent.last_changed,
+                    states.input_number.magna3_setpoint_m.last_changed] | max
+                   > now() - timedelta(seconds=20) }}
+          sequence:
+            - delay: 1
+      - condition: not
+        conditions:
+          - condition: state
+            entity_id: sensor.magna3_user_setpoint
+            state: ["unavailable", "unknown"]
       - action: input_number.set_value
         target:
           entity_id: input_number.magna3_setpoint_percent

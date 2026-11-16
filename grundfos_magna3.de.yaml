@@ -1,7 +1,7 @@
 # ==============================================================================
 # GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration
 # ==============================================================================
-# Version:       v4.3.4 (2026-11-15)
+# Version:       v4.3.5 (2026-11-16)
 # CIM 500 Modbus TCP Konfiguration
 # Dokumentation: Grundfos 98367081 05.2025
 # Repo:          https://github.com/TRON4R/ha-grundfos-magna3-modbus
@@ -1608,8 +1608,12 @@ automation:
               value: "{{ states('sensor.magna3_sollwert_meter') | float(0) }}"
 
   # Trigger ist die Pumpen-Rückmeldung. Wenn der User einen Slider bewegt → Script schreibt zur Pumpe → Pumpe meldet neuen Wert → Slider werden aktualisiert
+  # Die Pumpe wird nur alle 15 s gelesen, ihr Wert hinkt also bis zu 15 s hinterher. Solange ein Slider
+  # in den letzten 20 s bewegt wurde (Nutzer stellt noch), wird er deshalb nicht ueberschrieben, sonst
+  # springt er auf einen veralteten Zwischenwert zurueck. Danach gilt der dann aktuelle Pumpenwert.
   - id: magna3_sync_both_sliders_from_pump
     alias: "MAGNA3: Beide Slider aus Pumpenwert aktualisieren"
+    mode: restart
     trigger:
       - platform: state
         entity_id: sensor.magna3_sollwert_benutzer
@@ -1619,6 +1623,20 @@ automation:
           {{ trigger.to_state.state not in ['unavailable', 'unknown'] }}
     action:
       - delay: 2
+      - repeat:
+          while:
+            - condition: template
+              value_template: >
+                {{ [states.input_number.magna3_sollwert_prozent.last_changed,
+                    states.input_number.magna3_sollwert_meter.last_changed] | max
+                   > now() - timedelta(seconds=20) }}
+          sequence:
+            - delay: 1
+      - condition: not
+        conditions:
+          - condition: state
+            entity_id: sensor.magna3_sollwert_benutzer
+            state: ["unavailable", "unknown"]
       - action: input_number.set_value
         target:
           entity_id: input_number.magna3_sollwert_prozent

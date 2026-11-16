@@ -1,5 +1,16 @@
 # Changelog
 
+## v4.3.5 (2026-11-16)
+
+**Bugfix: the slider jumped back to an old value while being adjusted.**
+
+Cause: the pump's setpoint (reg 00338) is only polled every 15 s. "Update Both Sliders from Pump Value" set the sliders 2 s after every pump report, even while the user was still moving a slider. The report then contained a value the user had already left, and the slider jumped back to it. Nothing was written (echo guard from v4.3.4) and the pump had the right value, but setting a value was fiddly, especially on a phone.
+
+Fix: the automation runs in `restart` mode and only sets the sliders once neither slider has been moved for 20 s, using the pump value current at that moment. A change on the pump display still shows up after ~2 s; right after a slider move, after 20 s at most.
+
+Other:
+- Affects both YAMLs.
+
 ## v4.3.4 (2026-11-15)
 
 **Bugfix: Remote Start + "Switch to Local (adopt setpoint)" stored constant speed/frequency.**

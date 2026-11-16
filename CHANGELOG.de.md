@@ -1,5 +1,16 @@
 # Changelog
 
+## v4.3.5 (2026-11-16)
+
+**Bugfix: Slider sprang beim Verstellen auf einen alten Wert zurück.**
+
+Ursache: Der Sollwert der Pumpe (Reg 00338) wird nur alle 15 s gelesen. „Beide Slider aus Pumpenwert aktualisieren" setzte die Slider 2 s nach jeder Pumpenmeldung, auch während man noch am Slider stellte. Die Meldung enthielt dann einen Wert, den man schon wieder verlassen hatte, und der Slider sprang darauf zurück. Geschrieben wurde dabei nichts (Echo-Sperre aus v4.3.4), die Pumpe hatte den richtigen Wert, aber das Einstellen war mühsam, besonders am Handy.
+
+Fix: Die Automation läuft im Modus `restart` und setzt die Slider erst, wenn keiner der beiden Slider in den letzten 20 s bewegt wurde, und dann mit dem in diesem Moment aktuellen Pumpenwert. Eine Änderung am Pumpendisplay erscheint weiterhin nach ~2 s, direkt nach einer Slider-Bewegung spätestens nach 20 s.
+
+Sonstiges:
+- Betrifft beide YAMLs.
+
 ## v4.3.4 (2026-11-15)
 
 **Bugfix: Remote Start + „Zurück zu Lokal (Sollwert übernehmen)" speicherte konstante Drehzahl/Frequenz.**
