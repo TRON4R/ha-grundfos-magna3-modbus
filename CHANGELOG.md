@@ -9,7 +9,7 @@
 Other:
 - Affects both YAMLs; the cards are unchanged.
 
-**Note:** With the latest changes, the whole UX of the interface in Home Assistant **should be a lot smoother now**. Changes are reflected within a few seconds in all buttons and displays and don't need between 10 to 30 seconds anymore as they did before. Also potential errors creeping into the settings, which happened before, should now be a thing of the past. If you didn't like the previous look & feel, give this version another try, it's a huge improvement.
+**Note:** With the latest releases, the whole UX of the interface in Home Assistant **should be a lot smoother now**. Changes are reflected within a few seconds in all buttons and displays and don't need between 10 to 30 seconds anymore as they did before. Also potential errors creeping into the settings, which happened before, should now be a thing of the past. If you maybe didn't like the previous look & feel, give this version another try, it's a huge improvement.
 
 ## v4.4 (2026-11-16)
 
