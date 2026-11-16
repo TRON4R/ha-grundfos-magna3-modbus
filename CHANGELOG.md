@@ -9,6 +9,8 @@
 Other:
 - Affects both YAMLs; the cards are unchanged.
 
+**Note:** With the latest changes, the whole UX of the interface in Home Assistant should be a lot smoother now. Changes are reflected within a few seconds in all buttons and displays and don't need between 10 to 30 seconds anymore as they did before. Also potential errors creeping into the settings, which happened before, should now be a thing of the past. If you didn't like the previous look & feel, give this version another try, it's a huge improvement.
+
 ## v4.4 (2026-11-16)
 
 **Changed requirement: UIX instead of card-mod.** The dashboard card uses `uix:` instead of `card_mod:` (all 11 blocks). card-mod has not been developed further since February 2026. With card-mod instead of [UIX](https://github.com/Lint-Free-Technology/uix) the card still works, but the styling and the greying out (see below) are missing. The package YAML is not affected.

@@ -9,6 +9,8 @@
 Sonstiges:
 - Betrifft beide YAMLs, die Karten sind unverändert.
 
+**Hinweis:** Mit den letzten Änderungen sollte sich die ganze Bedienung in Home Assistant deutlich flüssiger anfühlen. Änderungen erscheinen innerhalb weniger Sekunden in allen Buttons und Anzeigen und brauchen nicht mehr 10 bis 30 Sekunden wie zuvor. Auch die Fehler, die sich früher in die Einstellungen einschleichen konnten, sollten der Vergangenheit angehören. Wem das bisherige Look & Feel nicht gefallen hat, sollte dieser Version noch eine Chance geben – es ist eine deutliche Verbesserung.
+
 ## v4.4 (2026-11-16)
 
 **Geänderte Voraussetzung: UIX statt card-mod.** Die Dashboard-Karte nutzt `uix:` statt `card_mod:` (alle 11 Blöcke). card-mod wird seit Februar 2026 nicht mehr weiterentwickelt. Mit card-mod statt [UIX](https://github.com/Lint-Free-Technology/uix) funktioniert die Karte weiter, es fehlen aber Styling und das Ausgrauen (siehe unten). Die Paket-YAML ist davon nicht betroffen.
