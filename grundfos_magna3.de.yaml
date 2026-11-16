@@ -1,7 +1,7 @@
 # ==============================================================================
 # GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration
 # ==============================================================================
-# Version:       v4.5 (2026-11-16)
+# Version:       v4.5.1 (2026-11-17)
 # CIM 500 Modbus TCP Konfiguration
 # Dokumentation: Grundfos 98367081 05.2025
 # Repo:          https://github.com/TRON4R/ha-grundfos-magna3-modbus
@@ -140,6 +140,7 @@ modbus:
         unique_id: magna3_r00201_status_bits
         address: 200  # Register 00201
         input_type: input
+        data_type: uint16  # Bitfeld; ohne Angabe int16, dann wird der Wert bei Bit 15 (AtMinSpeed) negativ
         slave: 1
         scan_interval: 30
         # Wird für Template Binary Sensors verwendet
@@ -1210,8 +1211,14 @@ script:
           slave: 1
           value: "{{ (wert * 100) | round(0) | int }}"
   
+  # Die Meter-Umrechnung braucht Einheit und Bereiche der aktiven Regelungsart. Diese
+  # liest "Sensor-Konfiguration bei Regelungsart-Wechsel nachlesen" erst 5 s nach einem
+  # Wechsel nach. Bis 7 s nach dem Wechsel wird deshalb gewartet (Wunschwert vorher
+  # gemerkt), sonst rechnete das Skript mit dem Bereich der alten Regelungsart.
+  # restart: Eine neue Eingabe waehrend der Wartezeit ersetzt die alte.
   magna3_set_sollwert_meter:
     alias: "MAGNA3: Sollwert (m) setzen"
+    mode: restart
     fields:
       meter:
         description: "Sollwert in Meter (z.B. 4.0)"
@@ -1219,6 +1226,11 @@ script:
     sequence:
       - variables:
           m: "{{ meter | float if meter is defined else states('input_number.magna3_sollwert_meter') | float }}"
+      - delay:
+          milliseconds: >
+            {{ ([0, 7 - (now() - states.sensor.magna3_regelungsart_code.last_changed).total_seconds()]
+                | max * 1000) | int }}
+      - variables:
           s_max: "{{ states('sensor.magna3_sensor_maximum') | float(0) }}"
           r_min_pct: "{{ states('sensor.magna3_sollwertbereich_min') | float(-1) }}"
           r_max_pct: "{{ states('sensor.magna3_sollwertbereich_max') | float(-1) }}"
@@ -1246,6 +1258,11 @@ script:
           address: 103  # Register 00104
           slave: 1
           value: "{{ reg_value }}"
+      # Pumpenwert nachlesen, damit die Slider gleich den geschriebenen Wert zeigen
+      - delay: 2
+      - action: homeassistant.update_entity
+        target:
+          entity_id: sensor.magna3_sollwert_benutzer
   
   # Regelungsart setzen
   magna3_set_regelungsart:
@@ -1294,6 +1311,9 @@ script:
   # Wert eine gerade gemachte Aenderung zuruecksetzen). Rueckgabe: {"ok": true/false}.
   magna3_prepare_remote:
     alias: "MAGNA3: Remote vorbereiten (intern)"
+    # queued: Zwei fast gleichzeitige Aufrufe (z. B. Start und Stop) laufen nacheinander,
+    # statt dass der zweite als "laeuft schon" verworfen wird
+    mode: queued
     sequence:
       # Frisch lesen statt der bis zu 30 s alten Werte
       - action: homeassistant.update_entity
@@ -1422,8 +1442,8 @@ script:
   # MAGNA3-Firmware als unzuverlaessig erwiesen, weil die Pumpe CopyToLocal
   # nicht zwingend im selben Polling-Zyklus wie die Bit-0-Flanke erkennt.
   # Die Pumpe wird dabei immer eingeschaltet (19 = On): Ein gesichertes "Aus" liesse
-  # die Heizkreispumpe nach dem Beenden stillstehen, ohne dass sie sich lokal wieder
-  # einschalten liesse.
+  # die Heizkreispumpe nach dem Beenden stillstehen; anwerfen liesse sie sich dann nur
+  # noch am Pumpendisplay oder per Grundfos GO, nicht durch die Waermepumpe.
   # Im Lokalbetrieb wechselt Schritt 1 erst nach Remote; damit dabei nicht die nach
   # einem Aus/Ein auf 0 stehenden Vorgabe-Register ins EEPROM gelangen, wird der
   # Bus-Kontext vorher vorbelegt (wie bei Remote Start).
@@ -1455,10 +1475,22 @@ script:
           entity_id:
             - sensor.magna3_status_bits_raw
             - sensor.magna3_steuerquelle_code
+            - sensor.magna3_regelungsart_code
+            - sensor.magna3_sollwert_benutzer
+      # Kurz warten, bis Regelungsart-Text und Meter-Sensor die frisch gelesenen Werte zeigen
+      - delay: 1
+      # Meldung mit den Werten, die die Pumpe jetzt lokal hat (= die uebernommenen)
       - action: persistent_notification.create
         data:
-          message: "MAGNA3 auf Lokal — aktueller Sollwert übernommen"
           title: "MAGNA3"
+          message: >-
+            {% set sw = states('sensor.magna3_sollwert_benutzer') %}
+            {% set m = states('sensor.magna3_sollwert_meter') %}
+            MAGNA3 wurde wieder auf lokale Steuerung über das Display zurückgeschaltet.
+            Übernommen wurden die Regelungsart {{ states('sensor.magna3_regelungsart') }}
+            und der Sollwert
+            {{ (sw | float | round(1) | string).replace('.', ',') ~ ' %' if sw | is_number else 'unbekannt' -}}
+            {{ ' (' ~ (m | float | round(2) | string).replace('.', ',') ~ ' m)' if m | is_number else '' }}.
 
   # Alarm Reset (schaltet die Pumpe nach Remote und ein)
   magna3_reset_alarm:
@@ -1477,12 +1509,23 @@ script:
           slave: 1
           value: 7  # Remote(1) + On(1) + ResetAlarm(1)
       - delay: 2
-      - action: modbus.write_register
-        data:
-          hub: Grundfos_MAGNA3
-          address: 100
-          slave: 1
-          value: 3  # Zurück zu Remote + On
+      # ResetAlarm-Bit nur zuruecknehmen, wenn seither niemand anders Reg 00101 geschrieben
+      # hat (Stop, Lokal, Sichern oder eine andere Automation). Sonst wuerde z. B. ein
+      # Stop in diesen 2 s durch das Schreiben von 3 (Remote + On) wieder aufgehoben.
+      - action: homeassistant.update_entity
+        target:
+          entity_id: sensor.magna3_control_register_00101_raw
+      - if:
+          - condition: state
+            entity_id: sensor.magna3_control_register_00101_raw
+            state: "7"
+        then:
+          - action: modbus.write_register
+            data:
+              hub: Grundfos_MAGNA3
+              address: 100
+              slave: 1
+              value: 3  # Zurück zu Remote + On
       # Status sofort nachlesen (sonst bis zu 30 s), damit das Dashboard gleich umschaltet
       - delay: 2
       - action: homeassistant.update_entity
@@ -1490,10 +1533,18 @@ script:
           entity_id:
             - sensor.magna3_status_bits_raw
             - sensor.magna3_steuerquelle_code
+      # Meldung mit dem tatsaechlichen Zustand (ein Stop in den 2 s nach dem Reset gilt weiter)
       - action: persistent_notification.create
         data:
           title: "MAGNA3"
-          message: "Alarm-Reset ausgeführt (Pumpe ist jetzt unter HA-Steuerung und eingeschaltet)"
+          message: >-
+            {% set s = states('sensor.magna3_status_bits_raw') | int(-1) %}
+            Alarm-Reset ausgeführt.
+            {% if s < 0 %}Zustand der Pumpe gerade nicht lesbar.
+            {%- else %}Pumpe jetzt:
+            {{ 'unter HA-Steuerung' if s | bitwise_and(256) > 0 else 'lokal gesteuert' }},
+            {{ 'eingeschaltet' if s | bitwise_and(512) > 0 else 'gestoppt' }}.
+            {%- endif %}
 
   # AUTOADAPT aktivieren
   magna3_enable_autoadapt:
@@ -1724,6 +1775,7 @@ automation:
 
   - id: magna3_sync_setpoint_meter
     alias: "MAGNA3: Sync Sollwert m"
+    mode: restart  # das Skript wartet ggf. bis 7 s; die letzte Eingabe gilt
     trigger:
       - platform: state
         entity_id: input_number.magna3_sollwert_meter
@@ -1822,7 +1874,8 @@ automation:
               value_template: >
                 {{ [states.input_number.magna3_sollwert_prozent.last_changed,
                     states.input_number.magna3_sollwert_meter.last_changed] | max
-                   > now() - timedelta(seconds=4) }}
+                   > now() - timedelta(seconds=4)
+                   or is_state('script.magna3_set_sollwert_meter', 'on') }}
           sequence:
             - delay: 1
       - condition: not

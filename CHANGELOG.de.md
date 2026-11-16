@@ -1,5 +1,23 @@
 # Changelog
 
+## v4.5.1 (2026-11-17)
+
+**Bugfix: Bei Mindestdrehzahl ließ sich die Pumpe nicht mehr bedienen** (seit v4.5). Das Statusregister 00201 hatte keinen Datentyp; Home Assistant liest es dann als vorzeichenbehaftete Zahl (`int16`). Ist Bit 15 „AtMinSpeed“ gesetzt, wird der Wert negativ (gemessen: −32058 bzw. −31804, zusammen rund 48 h in 10 Tagen). Die neue Prüfung `status >= 0` in `magna3_prepare_remote` hielt das für „Pumpe nicht erreichbar“: Start, Stop, Alarm-Reset und „Einstellungen sichern“ brachen mit „Wechsel nach Remote abgebrochen“ ab (ohne zu schreiben). Jetzt `data_type: uint16`. Die Statusbit-Sensoren waren nicht betroffen.
+
+**Bugfix: Alarm-Reset konnte einen Stop wieder aufheben.** Der Reset schreibt 7 (Remote + Ein + Reset), wartet 2 s und schrieb dann immer 3 (Remote + Ein). Ein Stop in diesen 2 s wurde dadurch aufgehoben. Jetzt liest der Reset Reg 00101 vorher frisch und schreibt 3 nur, wenn dort noch seine 7 steht. Das schützt auch gegen andere Automationen, die Reg 00101 direkt schreiben.
+
+**Bugfix: Meter-Eingabe direkt nach einem Regelungsart-Wechsel nutzte den alten Bereich.** Die Pumpe hat je Regelungsart eigene Sollwertbereiche (gemessen: 7,5 % = 2,49 m im alten, 1,5 m im neuen Bereich); sie werden erst 5 s nach dem Wechsel nachgelesen. `magna3_set_sollwert_meter` wartet deshalb bis 7 s nach einem Wechsel, merkt sich den Wunschwert vorher und rechnet dann mit dem neuen Bereich. Danach liest es den Pumpenwert nach. Skript und „Sync Sollwert m“ laufen im Modus `restart` (letzte Eingabe gilt); der Slider-Abgleich wartet, solange das Skript läuft. Außerhalb dieser 7 s ändert sich nichts.
+
+Sonstiges:
+- Meldungen: „Einstellungen sichern“ nennt jetzt die übernommene Regelungsart und den Sollwert in % und m (frisch aus der Pumpe gelesen, also zugleich eine Kontrolle); der Alarm-Reset meldet den tatsächlichen Zustand danach (HA-Steuerung/lokal, eingeschaltet/gestoppt) statt pauschal „eingeschaltet“.
+- `magna3_prepare_remote` im Modus `queued`: Zwei fast gleichzeitige Klicks laufen nacheinander, statt dass der zweite verworfen wird.
+- README: Beispiel für Handy-Benachrichtigungen zeigt nur noch die zusätzliche `notify`-Aktion (die vollständige Automation hätte die Verbesserungen aus v4.5 überschrieben). Unterschied präzisiert: Messregister mit 0xFFFF zeigen „unbekannt“, die abgeleiteten Sensoren „nicht verfügbar“.
+- Kommentar zu „Einstellungen sichern“: Eine gesicherte gestoppte Pumpe ließe sich noch am Pumpendisplay oder per Grundfos GO starten, nur nicht durch die Wärmepumpe.
+- Upgrade: Paket ersetzen, Automationen und Skripte neu laden und `modbus.reload` ausführen (kein Neustart nötig). Die Karte ist unverändert.
+- Betrifft beide YAMLs.
+
+**Hinweis:** Mit den letzten Releases sollte sich die ganze Bedienung in Home Assistant **deutlich flüssiger anfühlen**. Änderungen erscheinen innerhalb weniger Sekunden in allen Buttons und Anzeigen und brauchen nicht mehr 10 bis 30 Sekunden wie zuvor. Auch die Fehler, die sich früher in die Einstellungen einschleichen konnten, sollten der Vergangenheit angehören. Wem das bisherige Look & Feel nicht gefallen hat, sollte dieser Version noch eine Chance geben – es ist eine deutliche Verbesserung.
+
 ## v4.5 (2026-11-16)
 
 **Bugfix: „Einstellungen sichern“ im Lokalbetrieb konnte konstante Drehzahl mit 0 % ins EEPROM schreiben.** Der Button schaltete im ersten Schritt nach Remote, ohne die Vorgabe-Register vorzubelegen. Nach einem Aus/Ein der Pumpe stehen 00102/00104 auf 0; genau diese Werte wären dann gesichert worden (dieselbe Falle, gegen die v4.3.4 Remote Start absichert). Jetzt ruft auch `magna3_to_local_copy` zuerst `magna3_prepare_remote` auf, und der Button ist im Lokalbetrieb ausgegraut wie Slider und Regelungsart-Buttons.

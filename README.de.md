@@ -91,27 +91,16 @@ Die Pumpe meldet Probleme selbst über zwei Statusbits in Register 00201 (Bit 10
 | `magna3_high_current` | Motorstrom > 5 A für 5 Min | ⚠️ Frühindikator für mechanische Probleme — bevor die Pumpe selbst eine Übertemperatur-Abschaltung meldet |
 | `magna3_forced_to_local_detected` | Reg 00201 Bit 12 → on | ⚠️ Pumpe wurde von außerhalb von HA in den Lokalmodus gezwungen (Bedienung am Pumpendisplay, Grundfos GO App, Digitaleingang) — HA-Steuerung ist solange nicht möglich |
 
-**Verbindungsausfall:** Ist die Pumpe nicht erreichbar (z. B. stromlos), sind auch die abgeleiteten Sensoren (Statusbits, Klartexte, Energiekosten, Effizienz …) „nicht verfügbar“ statt „aus“, „Kein Alarm“ oder 0. Messregister, die den Grundfos-Wert 0xFFFF („nicht verfügbar“) liefern, werden ebenso behandelt. Ausnahme: „Durchfluss L/h“ zeigt dann 0, damit Verlaufskurven neben anderen Geräten durchgehend bleiben.
+**Verbindungsausfall:** Ist die Pumpe nicht erreichbar (z. B. stromlos), sind auch die abgeleiteten Sensoren (Statusbits, Klartexte, Energiekosten, Effizienz …) „nicht verfügbar“ statt „aus“, „Kein Alarm“ oder 0. Messregister, die den Grundfos-Wert 0xFFFF („nicht verfügbar“) liefern, zeigen „unbekannt“, die daraus abgeleiteten Sensoren wieder „nicht verfügbar“. Ausnahme: „Durchfluss L/h“ zeigt dann 0, damit Verlaufskurven neben anderen Geräten durchgehend bleiben.
 
 **Wichtig:** Die Statusregister werden **alle 30 Sekunden** über Modbus gepollt, **unabhängig** davon, ob HA gerade die Pumpe steuert oder die Pumpe lokal läuft. Auch Alarme während rein lokaler Pumpenoperation erreichen also zuverlässig den HA-Notification-Drawer.
 
 **Quittieren:** Aktive Alarme werden über den Dashboard-Button *„Alarm zurücksetzen"* gelöscht (Script `magna3_reset_alarm` — schreibt einen Rising-Edge-Trigger auf Reg 00101 Bit 2). Achtung: Der Reset wirkt nur, wenn die zugrundeliegende Fehlerursache (z.B. Trockenlauf-Bedingung) bereits behoben ist. Warnungen verschwinden hingegen automatisch, sobald die Ursache wegfällt.
 
-**Erweiterung:** Wenn du Push-Notifications aufs Handy willst (statt nur den HA-Drawer), kannst du die jeweilige Automation um eine zweite `action:` mit `notify.mobile_app_<device>` ergänzen. Beispiel:
+**Erweiterung:** Wenn du Push-Notifications aufs Handy willst (statt nur den HA-Drawer), kannst du in der jeweiligen Automation unter `action:` nach der vorhandenen `persistent_notification.create` diese Aktion ergänzen (den Rest der Automation unverändert lassen):
 
 ```yaml
-- id: magna3_alarm_notification
-  alias: "MAGNA3: Alarm Benachrichtigung"
-  trigger:
-    - platform: state
-      entity_id: binary_sensor.magna3_alarm
-      to: 'on'
-  action:
-    - action: persistent_notification.create
-      data:
-        title: "🚨 MAGNA3 Alarm"
-        message: "Code: {{ states('sensor.magna3_alarm_code') }} ({{ states('sensor.magna3_alarm_text') }})"
-    - action: notify.mobile_app_dein_handy   # ← anpassen oder ganz weglassen
+    - action: notify.mobile_app_dein_handy   # ← anpassen
       data:
         title: "🚨 MAGNA3 Alarm"
         message: "Code: {{ states('sensor.magna3_alarm_code') }} ({{ states('sensor.magna3_alarm_text') }})"

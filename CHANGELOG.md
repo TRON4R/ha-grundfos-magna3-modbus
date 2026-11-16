@@ -1,5 +1,23 @@
 # Changelog
 
+## v4.5.1 (2026-11-17)
+
+**Bug fix: the pump could not be operated at minimum speed** (since v4.5). Status register 00201 had no data type, so Home Assistant read it as a signed number (`int16`). With bit 15 "AtMinSpeed" set the value turns negative (measured: −32058 and −31804, about 48 h in 10 days). The new check `status >= 0` in `magna3_prepare_remote` took that for "pump unreachable": Start, Stop, Reset Alarm and "Save Settings" aborted with "Switch to Remote aborted" (without writing). Now `data_type: uint16`. The status bit sensors were not affected.
+
+**Bug fix: Reset Alarm could undo a Stop.** The reset writes 7 (Remote + On + Reset), waits 2 s and then always wrote 3 (Remote + On). A Stop within these 2 s was undone. Now the reset re-reads reg 00101 first and writes 3 only if its 7 is still there. This also protects against other automations writing reg 00101 directly.
+
+**Bug fix: a meter input right after a control mode change used the old range.** The pump has separate setpoint ranges per control mode (measured: 7.5 % = 2.49 m in the old, 1.5 m in the new range); they are re-read 5 s after the change. `magna3_set_setpoint_m` therefore waits until 7 s after a change, keeps the requested value and then converts with the new range. Afterwards it re-reads the pump value. The script and "Sync Setpoint m" run in `restart` mode (the last input wins); the slider sync waits while the script runs. Outside these 7 s nothing changes.
+
+Other:
+- Notifications: "Save Settings" now names the adopted control mode and the setpoint in % and m (read fresh from the pump, so it doubles as a check); Reset Alarm reports the actual state afterwards (HA/local control, switched on/stopped) instead of always "switched on".
+- `magna3_prepare_remote` in `queued` mode: two near-simultaneous clicks run one after the other instead of the second being dropped.
+- README: the phone notification example now shows only the additional `notify` action (the full automation would have overwritten the v4.5 improvements). Clarified: measurement registers returning 0xFFFF show "unknown", the derived sensors "unavailable".
+- Comment on "Save Settings": a stored stopped pump could still be started at the pump display or via Grundfos GO, just not by the heat pump.
+- Upgrade: replace the package, reload automations and scripts and run `modbus.reload` (no restart needed). The card is unchanged.
+- Affects both YAMLs.
+
+**Note:** With the latest releases, the whole UX of the interface in Home Assistant **should be a lot smoother now**. Changes are reflected within a few seconds in all buttons and displays and don't need between 10 to 30 seconds anymore as they did before. Also potential errors creeping into the settings, which happened before, should now be a thing of the past. If you didn't like the previous look & feel, give this version another try, it's a huge improvement.
+
 ## v4.5 (2026-11-16)
 
 **Bug fix: "Save Settings" in local mode could store constant speed at 0 % in the EEPROM.** The button first switched to Remote without pre-loading the request registers. After a power cycle of the pump, 00102/00104 read 0, and exactly these values would have been saved (the same trap v4.3.4 guards Remote Start against). Now `magna3_to_local_copy` also calls `magna3_prepare_remote` first, and the button is greyed out in local mode like the sliders and control mode buttons.
