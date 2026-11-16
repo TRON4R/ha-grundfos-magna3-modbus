@@ -58,6 +58,8 @@ The file `dashboard_card.yaml` contains a ready-to-use Lovelace card with gauges
 
 **Usage:** Paste the contents of `dashboard_card.yaml` as a manual card (YAML) in the dashboard editor.
 
+**Operation:** The setpoint sliders and the control mode buttons (Proportional Pressure, Constant Pressure, AutoAdapt, FlowAdapt) only take effect while HA controls the pump (Remote). In local mode the pump ignores these requests, so they are greyed out then. First "Start HA Control", then change setpoint or control mode; to store it permanently use "Save Settings & End HA Control". After start or end the display switches after about 2 s; if control changes some other way (pump display, Grundfos GO), after 30 s at most.
+
 ### Required HACS Cards
 
 The dashboard card requires the following HACS frontend extensions:
@@ -65,11 +67,13 @@ The dashboard card requires the following HACS frontend extensions:
 | HACS Card | Purpose | HACS Search |
 |---|---|---|
 | [**Vertical Stack In Card**](https://github.com/ofekashery/vertical-stack-in-card) | Outer container without borders | `vertical-stack-in-card` |
-| [**card-mod**](https://github.com/thomasloven/lovelace-card-mod) | CSS styling (remove borders, colors) | `card-mod` |
+| [**UIX (UI eXtension)**](https://github.com/Lint-Free-Technology/uix) | CSS styling (remove borders, colors, grey out sliders in local mode). Installed as an integration, docs: [uix.lf.technology](https://uix.lf.technology/) | `uix` |
 | [**button-card**](https://github.com/custom-cards/button-card) | Control buttons with tooltips, multi-line labels, custom icon sizing | `button-card` |
 | [**Mushroom**](https://github.com/piitaya/lovelace-mushroom) | Template card for flow status | `mushroom` |
 
 Without these cards the dashboard card will not render correctly. The Modbus YAML itself works independently.
+
+**UIX instead of card-mod since v4.4:** the card uses `uix:` instead of `card_mod:`. card-mod has not been developed further since February 2026; UIX comes from the same circle and also understands old `card_mod:` blocks. With card-mod instead of UIX the card still works, but the styling and the greying out of the sliders and control mode buttons in local mode are missing.
 
 ## Monitoring & Notifications
 

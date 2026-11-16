@@ -7,7 +7,7 @@ cards:
     badges:
       - type: entity
         entity: sensor.magna3_control_mode
-    card_mod:
+    uix:
       style: |
         ha-icon {
           color: red !important;
@@ -25,7 +25,7 @@ cards:
           yellow: 6
           red: 8
         needle: true
-        card_mod:
+        uix:
           style: |
             ha-card {
               border: none !important;
@@ -42,7 +42,7 @@ cards:
           green: 0
           yellow: 80
           red: 120
-        card_mod:
+        uix:
           style: |
             ha-card {
               border: none !important;
@@ -59,7 +59,7 @@ cards:
           yellow: 3000
           red: 4000
         needle: true
-        card_mod:
+        uix:
           style: |
             ha-card {
               border: none !important;
@@ -78,7 +78,7 @@ cards:
           yellow: 3000
           red: 4000
         needle: true
-        card_mod:
+        uix:
           style: |
             ha-card {
               border: none !important;
@@ -95,7 +95,7 @@ cards:
           red: 90
         needle: true
         name: Actual Setpoint
-        card_mod:
+        uix:
           style: |
             ha-card {
               border: none !important;
@@ -112,7 +112,7 @@ cards:
           red: 60
         needle: true
         name: Liquid Temp
-        card_mod:
+        uix:
           style: |
             ha-card {
               border: none !important;
@@ -135,7 +135,7 @@ cards:
             amber
           {% endif %}
         features_position: bottom
-        card_mod:
+        uix:
           style: |
             ha-card {
               border: none !important;
@@ -152,7 +152,7 @@ cards:
           red: 90
         needle: true
         name: User Setpoint
-        card_mod:
+        uix:
           style: |
             ha-card {
               border: none !important;
@@ -169,7 +169,7 @@ cards:
           red: 8
         needle: true
         name: User Setpoint
-        card_mod:
+        uix:
           style: |
             ha-card {
               border: none !important;
@@ -180,8 +180,24 @@ cards:
     entities:
       - entity: input_number.magna3_setpoint_percent
         name: Setpoint (%)
+        uix:
+          style: |
+            :host {
+              {% if not is_state('binary_sensor.magna3_remote_mode', 'on') %}
+              opacity: 0.4;
+              pointer-events: none;
+              {% endif %}
+            }
       - entity: input_number.magna3_setpoint_m
         name: Setpoint (m)
+        uix:
+          style: |
+            :host {
+              {% if not is_state('binary_sensor.magna3_remote_mode', 'on') %}
+              opacity: 0.4;
+              pointer-events: none;
+              {% endif %}
+            }
       - entity: sensor.magna3_control_source
       - entity: binary_sensor.magna3_remote_mode
   - type: horizontal-stack
@@ -200,8 +216,17 @@ cards:
             HA takes over via Modbus. Pump keeps its current control mode
             and setpoint and runs (or starts).
             Setpoint slider in HA now controls the pump.
+            Before that, the sliders and control mode buttons are greyed out.
           placement: bottom
           arrow: true
+        # Fixed border (vertical-stack-in-card otherwise removes it depending on load timing).
+        # Narrow card (e.g. phone): smaller icon and font so icon and label fit into 110 px
+        extra_styles: |
+          ha-card { container-type: inline-size; border: 1px solid var(--ha-card-border-color, var(--divider-color)) !important; }
+          @container (max-width: 130px) {
+            #icon { width: 28px !important; height: 28px !important; --mdc-icon-size: 28px !important; }
+            #name { font-size: 12px !important; }
+          }
         styles:
           card:
             - padding: 6px
@@ -242,6 +267,14 @@ cards:
             Use after changing settings via HA so they survive a power cycle.
           placement: bottom
           arrow: true
+        # Fixed border (vertical-stack-in-card otherwise removes it depending on load timing).
+        # Narrow card (e.g. phone): smaller icon and font so icon and label fit into 110 px
+        extra_styles: |
+          ha-card { container-type: inline-size; border: 1px solid var(--ha-card-border-color, var(--divider-color)) !important; }
+          @container (max-width: 130px) {
+            #icon { width: 28px !important; height: 28px !important; --mdc-icon-size: 28px !important; }
+            #name { font-size: 12px !important; }
+          }
         styles:
           card:
             - padding: 6px
@@ -280,6 +313,14 @@ cards:
             Use to abort an HA session without persisting changes.
           placement: bottom
           arrow: true
+        # Fixed border (vertical-stack-in-card otherwise removes it depending on load timing).
+        # Narrow card (e.g. phone): smaller icon and font so icon and label fit into 110 px
+        extra_styles: |
+          ha-card { container-type: inline-size; border: 1px solid var(--ha-card-border-color, var(--divider-color)) !important; }
+          @container (max-width: 130px) {
+            #icon { width: 28px !important; height: 28px !important; --mdc-icon-size: 28px !important; }
+            #name { font-size: 12px !important; }
+          }
         styles:
           card:
             - padding: 6px
@@ -321,6 +362,14 @@ cards:
             Resume operation with "Start HA Control".
           placement: bottom
           arrow: true
+        # Fixed border (vertical-stack-in-card otherwise removes it depending on load timing).
+        # Narrow card (e.g. phone): smaller icon and font so icon and label fit into 110 px
+        extra_styles: |
+          ha-card { container-type: inline-size; border: 1px solid var(--ha-card-border-color, var(--divider-color)) !important; }
+          @container (max-width: 130px) {
+            #icon { width: 28px !important; height: 28px !important; --mdc-icon-size: 28px !important; }
+            #name { font-size: 12px !important; }
+          }
         styles:
           card:
             - padding: 6px
@@ -350,6 +399,8 @@ cards:
         show_name: true
         show_icon: true
         color: "#44739E"
+        triggers_update:
+          - binary_sensor.magna3_remote_mode
         tap_action:
           action: perform-action
           perform_action: script.magna3_enable_proportional
@@ -360,11 +411,21 @@ cards:
             Standard for radiator heating with thermostatic valves.
           placement: bottom
           arrow: true
+        # Fixed border (vertical-stack-in-card otherwise removes it depending on load timing).
+        # Narrow card (e.g. phone): smaller icon and font so icon and label fit into 110 px
+        extra_styles: |
+          ha-card { container-type: inline-size; border: 1px solid var(--ha-card-border-color, var(--divider-color)) !important; }
+          @container (max-width: 130px) {
+            #icon { width: 28px !important; height: 28px !important; --mdc-icon-size: 28px !important; }
+            #name { font-size: 12px !important; }
+          }
         styles:
           card:
             - padding: 6px
             - height: 110px
             - margin-top: 8px
+            - opacity: "[[[ return states['binary_sensor.magna3_remote_mode']?.state === 'on' ? '1' : '0.4' ]]]"
+            - pointer-events: "[[[ return states['binary_sensor.magna3_remote_mode']?.state === 'on' ? 'auto' : 'none' ]]]"
           grid:
             - grid-template-areas: '"i" "n"'
             - grid-template-columns: 1fr
@@ -389,6 +450,8 @@ cards:
         show_name: true
         show_icon: true
         color: "#44739E"
+        triggers_update:
+          - binary_sensor.magna3_remote_mode
         tap_action:
           action: perform-action
           perform_action: script.magna3_enable_constant_pressure
@@ -398,11 +461,21 @@ cards:
             Standard for underfloor heating or systems requiring a stable pressure setpoint.
           placement: bottom
           arrow: true
+        # Fixed border (vertical-stack-in-card otherwise removes it depending on load timing).
+        # Narrow card (e.g. phone): smaller icon and font so icon and label fit into 110 px
+        extra_styles: |
+          ha-card { container-type: inline-size; border: 1px solid var(--ha-card-border-color, var(--divider-color)) !important; }
+          @container (max-width: 130px) {
+            #icon { width: 28px !important; height: 28px !important; --mdc-icon-size: 28px !important; }
+            #name { font-size: 12px !important; }
+          }
         styles:
           card:
             - padding: 6px
             - height: 110px
             - margin-top: 8px
+            - opacity: "[[[ return states['binary_sensor.magna3_remote_mode']?.state === 'on' ? '1' : '0.4' ]]]"
+            - pointer-events: "[[[ return states['binary_sensor.magna3_remote_mode']?.state === 'on' ? 'auto' : 'none' ]]]"
           grid:
             - grid-template-areas: '"i" "n"'
             - grid-template-columns: 1fr
@@ -429,6 +502,8 @@ cards:
         show_name: true
         show_icon: true
         color: "#44739E"
+        triggers_update:
+          - binary_sensor.magna3_remote_mode
         tap_action:
           action: perform-action
           perform_action: script.magna3_enable_autoadapt
@@ -438,11 +513,21 @@ cards:
             Factory default. Best choice when in doubt.
           placement: bottom
           arrow: true
+        # Fixed border (vertical-stack-in-card otherwise removes it depending on load timing).
+        # Narrow card (e.g. phone): smaller icon and font so icon and label fit into 110 px
+        extra_styles: |
+          ha-card { container-type: inline-size; border: 1px solid var(--ha-card-border-color, var(--divider-color)) !important; }
+          @container (max-width: 130px) {
+            #icon { width: 28px !important; height: 28px !important; --mdc-icon-size: 28px !important; }
+            #name { font-size: 12px !important; }
+          }
         styles:
           card:
             - padding: 6px
             - height: 110px
             - margin-top: 8px
+            - opacity: "[[[ return states['binary_sensor.magna3_remote_mode']?.state === 'on' ? '1' : '0.4' ]]]"
+            - pointer-events: "[[[ return states['binary_sensor.magna3_remote_mode']?.state === 'on' ? 'auto' : 'none' ]]]"
           grid:
             - grid-template-areas: '"i" "n"'
             - grid-template-columns: 1fr
@@ -467,6 +552,8 @@ cards:
         show_name: true
         show_icon: true
         color: "#44739E"
+        triggers_update:
+          - binary_sensor.magna3_remote_mode
         tap_action:
           action: perform-action
           perform_action: script.magna3_enable_flowadapt
@@ -476,11 +563,21 @@ cards:
             Use when flow must be capped to avoid noise or wear.
           placement: bottom
           arrow: true
+        # Fixed border (vertical-stack-in-card otherwise removes it depending on load timing).
+        # Narrow card (e.g. phone): smaller icon and font so icon and label fit into 110 px
+        extra_styles: |
+          ha-card { container-type: inline-size; border: 1px solid var(--ha-card-border-color, var(--divider-color)) !important; }
+          @container (max-width: 130px) {
+            #icon { width: 28px !important; height: 28px !important; --mdc-icon-size: 28px !important; }
+            #name { font-size: 12px !important; }
+          }
         styles:
           card:
             - padding: 6px
             - height: 110px
             - margin-top: 8px
+            - opacity: "[[[ return states['binary_sensor.magna3_remote_mode']?.state === 'on' ? '1' : '0.4' ]]]"
+            - pointer-events: "[[[ return states['binary_sensor.magna3_remote_mode']?.state === 'on' ? 'auto' : 'none' ]]]"
           grid:
             - grid-template-areas: '"i" "n"'
             - grid-template-columns: 1fr
@@ -515,6 +612,14 @@ cards:
             Use only after fixing the underlying fault.
           placement: bottom
           arrow: true
+        # Fixed border (vertical-stack-in-card otherwise removes it depending on load timing).
+        # Narrow card (e.g. phone): smaller icon and font so icon and label fit into 110 px
+        extra_styles: |
+          ha-card { container-type: inline-size; border: 1px solid var(--ha-card-border-color, var(--divider-color)) !important; }
+          @container (max-width: 130px) {
+            #icon { width: 28px !important; height: 28px !important; --mdc-icon-size: 28px !important; }
+            #name { font-size: 12px !important; }
+          }
         styles:
           card:
             - padding: 6px
@@ -538,7 +643,7 @@ cards:
             - height: 48px
             - "--mdc-icon-size": 48px
             - transform: scale(1.3)
-card_mod:
+uix:
   style: |
     ha-card > :first-child {
       padding-top: 12px;

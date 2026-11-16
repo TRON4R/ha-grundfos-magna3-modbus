@@ -1,7 +1,7 @@
 # ==============================================================================
 # GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration
 # ==============================================================================
-# Version:       v4.3.5 (2026-11-16)
+# Version:       v4.4 (2026-11-16)
 # CIM 500 Modbus TCP Konfiguration
 # Dokumentation: Grundfos 98367081 05.2025
 # Repo:          https://github.com/TRON4R/ha-grundfos-magna3-modbus
@@ -1272,6 +1272,13 @@ script:
           address: 100  # Register 00101
           slave: 1
           value: 3  # Remote(1) + On(1)
+      # Status sofort nachlesen (sonst bis zu 30 s), damit das Dashboard gleich umschaltet
+      - delay: 2
+      - action: homeassistant.update_entity
+        target:
+          entity_id:
+            - sensor.magna3_status_bits_raw
+            - sensor.magna3_steuerquelle_code
 
   # Remote Stop
   magna3_stop_remote:
@@ -1287,6 +1294,13 @@ script:
           address: 100
           slave: 1
           value: 1  # Remote(1) + Off(0)
+      # Status sofort nachlesen (sonst bis zu 30 s), damit das Dashboard gleich umschaltet
+      - delay: 2
+      - action: homeassistant.update_entity
+        target:
+          entity_id:
+            - sensor.magna3_status_bits_raw
+            - sensor.magna3_steuerquelle_code
 
   # Zurück zu Lokal (Bus-Sollwert verwerfen, Pumpe nutzt im EEPROM gespeicherten Wert)
   magna3_to_local:
@@ -1298,6 +1312,13 @@ script:
           address: 100
           slave: 1
           value: 0  # Local(0)
+      # Status sofort nachlesen (sonst bis zu 30 s), damit das Dashboard gleich umschaltet
+      - delay: 2
+      - action: homeassistant.update_entity
+        target:
+          entity_id:
+            - sensor.magna3_status_bits_raw
+            - sensor.magna3_steuerquelle_code
 
   # Zurück zu Lokal MIT Übernahme des aktuellen Bus-Sollwerts ins Pumpen-EEPROM.
   # Mechanismus laut Grundfos-Dok 98367081 (Reg 00101 Bit 4 "CopyToLocal"):
@@ -1326,6 +1347,12 @@ script:
           slave: 1
           value: 16  # Local(0) + CopyToLocal(1) — Remote->Local-Flanke loest EEPROM-Kopie aus
       - delay: 2
+      # Status sofort nachlesen (sonst bis zu 30 s), damit das Dashboard gleich umschaltet
+      - action: homeassistant.update_entity
+        target:
+          entity_id:
+            - sensor.magna3_status_bits_raw
+            - sensor.magna3_steuerquelle_code
       - action: persistent_notification.create
         data:
           message: "MAGNA3 auf Lokal — aktueller Sollwert übernommen"
@@ -1354,6 +1381,13 @@ script:
           address: 100
           slave: 1
           value: 3  # Zurück zu Remote + On
+      # Status sofort nachlesen (sonst bis zu 30 s), damit das Dashboard gleich umschaltet
+      - delay: 2
+      - action: homeassistant.update_entity
+        target:
+          entity_id:
+            - sensor.magna3_status_bits_raw
+            - sensor.magna3_steuerquelle_code
       - action: persistent_notification.create
         data:
           title: "MAGNA3"
@@ -1607,20 +1641,35 @@ automation:
             data:
               value: "{{ states('sensor.magna3_sollwert_meter') | float(0) }}"
 
-  # Trigger ist die Pumpen-Rückmeldung. Wenn der User einen Slider bewegt → Script schreibt zur Pumpe → Pumpe meldet neuen Wert → Slider werden aktualisiert
-  # Die Pumpe wird nur alle 15 s gelesen, ihr Wert hinkt also bis zu 15 s hinterher. Solange ein Slider
-  # in den letzten 20 s bewegt wurde (Nutzer stellt noch), wird er deshalb nicht ueberschrieben, sonst
-  # springt er auf einen veralteten Zwischenwert zurueck. Danach gilt der dann aktuelle Pumpenwert.
+  # Regel: 20 s nach der letzten Slider-Bewegung zeigen beide Slider den Pumpenwert.
+  # Ausloeser: neue Pumpen-Rueckmeldung, Wechsel Lokal/Remote und Slider-Bewegungen von aussen.
+  # - Die Pumpe wird nur alle 15 s gelesen, ihr Wert hinkt also bis zu 15 s hinterher. Solange ein Slider
+  #   in den letzten 20 s bewegt wurde (Nutzer stellt noch), wird er nicht ueberschrieben, sonst springt
+  #   er auf einen veralteten Zwischenwert zurueck.
+  # - Im Lokalbetrieb wirkt ein Slider nicht (die Pumpe ignoriert Reg 00104, Remote Start ueberschreibt
+  #   es). Wird er trotzdem bewegt, steht er nach 20 s wieder auf dem Pumpenwert.
+  # - Eigene Slider-Aenderungen (gleicher Kontext wie der letzte Lauf) loesen keinen Neustart aus.
   - id: magna3_sync_both_sliders_from_pump
     alias: "MAGNA3: Beide Slider aus Pumpenwert aktualisieren"
     mode: restart
     trigger:
       - platform: state
         entity_id: sensor.magna3_sollwert_benutzer
+        id: pumpe
+      - platform: state
+        entity_id: sensor.magna3_steuerquelle_code
+        id: steuerquelle
+      - platform: state
+        entity_id:
+          - input_number.magna3_sollwert_prozent
+          - input_number.magna3_sollwert_meter
+        id: slider
     condition:
       - condition: template
         value_template: >
-          {{ trigger.to_state.state not in ['unavailable', 'unknown'] }}
+          {{ trigger.to_state.state not in ['unavailable', 'unknown']
+             and (trigger.id != 'slider'
+                  or trigger.to_state.context.id != this.context.id) }}
     action:
       - delay: 2
       - repeat:

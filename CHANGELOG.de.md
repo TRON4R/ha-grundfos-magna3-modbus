@@ -1,5 +1,25 @@
 # Changelog
 
+## v4.4 (2026-11-16)
+
+**Geänderte Voraussetzung: UIX statt card-mod.** Die Dashboard-Karte nutzt `uix:` statt `card_mod:` (alle 11 Blöcke). card-mod wird seit Februar 2026 nicht mehr weiterentwickelt. Mit card-mod statt [UIX](https://github.com/Lint-Free-Technology/uix) funktioniert die Karte weiter, es fehlen aber Styling und das Ausgrauen (siehe unten). Die Paket-YAML ist davon nicht betroffen.
+
+**Neu: Bedienelemente im Lokalbetrieb ausgegraut.** Solange die Pumpe nicht in Remote ist (`binary_sensor.magna3_remote_modus` aus), sind die beiden Sollwert-Slider und die vier Regelungsart-Buttons (Proportionaldruck, Konstantdruck, AutoAdapt, FlowAdapt) blass und reagieren nicht. Im Lokalbetrieb ignoriert die Pumpe die Vorgabe-Register 00102/00104, und der nächste Remote Start überschreibt sie mit den aktiven Werten (seit v4.3.4). Eine Eingabe dort hatte also nie eine Wirkung, sah aber so aus. Slider per UIX, Buttons über die eigenen `styles:` der button-card.
+
+**Bugfix: Slider blieb auf einem Wert stehen, den die Pumpe nie bekommen hat.** Beispiel: Slider im Lokalbetrieb auf 4 m gestellt, danach HA-Steuerung gestartet → Pumpe lief mit 3,5 m weiter, der Slider zeigte dauerhaft 4 m, weil sich der Pumpenwert nicht änderte und die Pumpen-Sync deshalb nie auslöste.
+
+Fix: „Beide Slider aus Pumpenwert aktualisieren" löst zusätzlich bei Slider-Bewegungen und beim Wechsel der Steuerquelle (Reg 00225) aus. Es gilt eine Regel: 20 s nach der letzten Slider-Bewegung zeigen beide Slider den Pumpenwert. Eigene Slider-Änderungen der Automation (gleicher Kontext wie ihr letzter Lauf) lösen keinen Neustart aus. In Remote ändert sich dadurch praktisch nichts, denn dort hat die Pumpe den eingestellten Wert nach 20 s längst; schlägt ein Schreibvorgang fehl, zeigt der Slider danach den echten Wert.
+
+**Verbesserung: Dashboard schaltet nach Start/Ende sofort um.** Remote Start, Remote Stop, beide Varianten von „HA-Steuerung beenden“ und Alarm-Reset lesen 2 s nach dem Schreiben von Reg 00101 die Statusbits (Reg 00201) und die Steuerquelle (Reg 00225) per `homeassistant.update_entity` nach. Vorher kam die Änderung erst mit der nächsten Abfrage (alle 30 s) an, das Ausgrauen hinkte also bis zu 30 s hinterher.
+
+**Bugfix: Button-Icons verschwanden am Handy.** Die Buttons waren fest 110 px hoch; bei schmaler Karte brauchten „Einstellungen sichern & HA-Steuerung beenden“ und „Pumpe stoppen (HA-Steuerung bleibt)“ 4–6 Zeilen und ließen dem Icon keinen Platz (gemessen bei 342 px Bildschirmbreite: 16 px bzw. 0 px). Jetzt schrumpfen bei schmaler Button-Karte (unter 130 px Innenbreite, per Container Query in `extra_styles`) Icon von 48 auf 28 px und Schrift von 14 auf 12 px; die Höhe bleibt bei 110 px. Am Desktop bleibt alles wie bisher.
+
+Sonstiges:
+- README: UIX statt card-mod in der Tabelle der benötigten HACS-Erweiterungen; neuer Absatz „Bedienung“ (wann Slider und Buttons wirken).
+- Tooltip „HA-Steuerung starten“: Hinweis auf das Ausgrauen vorher.
+- Buttons haben jetzt einen festen feinen Rahmen (`extra_styles`, Farbe aus dem Theme). Vorher entfernte `vertical-stack-in-card` ihn je nach Ladezeitpunkt, am Handy fehlte er meist.
+- Betrifft beide YAMLs und beide Karten.
+
 ## v4.3.5 (2026-11-16)
 
 **Bugfix: Slider sprang beim Verstellen auf einen alten Wert zurück.**

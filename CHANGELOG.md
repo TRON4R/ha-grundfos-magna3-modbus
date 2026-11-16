@@ -1,5 +1,25 @@
 # Changelog
 
+## v4.4 (2026-11-16)
+
+**Changed requirement: UIX instead of card-mod.** The dashboard card uses `uix:` instead of `card_mod:` (all 11 blocks). card-mod has not been developed further since February 2026. With card-mod instead of [UIX](https://github.com/Lint-Free-Technology/uix) the card still works, but the styling and the greying out (see below) are missing. The package YAML is not affected.
+
+**New: controls greyed out in local mode.** While the pump is not in Remote (`binary_sensor.magna3_remote_mode` off), both setpoint sliders and the four control mode buttons (Proportional Pressure, Constant Pressure, AutoAdapt, FlowAdapt) are faded and do not react. In local mode the pump ignores the request registers 00102/00104, and the next Remote Start overwrites them with the active values (since v4.3.4). Input there never had an effect but looked as if it did. Sliders via UIX, buttons via button-card's own `styles:`.
+
+**Bugfix: a slider stayed on a value the pump never received.** Example: slider set to 4 m in local mode, then HA control started → the pump kept running at 3.5 m while the slider showed 4 m for good, because the pump value did not change and the pump sync therefore never fired.
+
+Fix: "Update Both Sliders from Pump Value" also fires on slider moves and on a change of the control source (reg 00225). One rule applies: 20 s after the last slider move, both sliders show the pump value. The automation's own slider changes (same context as its last run) do not restart it. In Remote this changes practically nothing, since the pump has the set value long before 20 s are up; if a write fails, the slider shows the real value afterwards.
+
+**Improvement: dashboard switches right after start/end.** Remote Start, Remote Stop, both variants of "End HA Control" and Reset Alarm re-read the status bits (reg 00201) and the control source (reg 00225) via `homeassistant.update_entity` 2 s after writing reg 00101. Before, the change only arrived with the next poll (every 30 s), so the greying out lagged up to 30 s behind.
+
+**Bugfix: button icons disappeared on phones.** The buttons have a fixed height of 110 px; on a narrow card "Save Settings & End HA Control" and "Stop Pump (keep HA Control)" needed 4–6 lines and left no room for the icon (measured at 342 px screen width: 16 px and 0 px). Now, on a narrow button card (inner width below 130 px, via a container query in `extra_styles`), the icon shrinks from 48 to 28 px and the font from 14 to 12 px; the height stays at 110 px. On desktop everything stays as before.
+
+Other:
+- README: UIX instead of card-mod in the table of required HACS extensions; new "Operation" paragraph (when sliders and buttons take effect).
+- "Start HA Control" tooltip: notes the greying out before.
+- Buttons now have a fixed thin border (`extra_styles`, colour from the theme). Before, `vertical-stack-in-card` removed it depending on load timing, so it was usually missing on phones.
+- Affects both YAMLs and both cards.
+
 ## v4.3.5 (2026-11-16)
 
 **Bugfix: the slider jumped back to an old value while being adjusted.**

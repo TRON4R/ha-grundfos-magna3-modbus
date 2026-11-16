@@ -57,6 +57,8 @@ Die Datei `dashboard_card.de.yaml` enthält eine fertige Lovelace-Karte mit Gaug
 
 **Verwendung:** Inhalt von `dashboard_card.de.yaml` im Dashboard-Editor als manuelle Karte (YAML) einfügen.
 
+**Bedienung:** Die Sollwert-Slider und die Regelungsart-Buttons (Proportionaldruck, Konstantdruck, AutoAdapt, FlowAdapt) wirken nur, solange HA die Pumpe steuert (Remote). Im Lokalbetrieb ignoriert die Pumpe diese Vorgaben, deshalb sind sie dann ausgegraut. Erst „HA-Steuerung starten“, dann Sollwert oder Regelungsart ändern, zum dauerhaften Speichern „Einstellungen sichern & HA-Steuerung beenden“. Nach Start oder Ende schaltet die Anzeige nach etwa 2 s um; ändert sich die Steuerung auf anderem Weg (Pumpendisplay, Grundfos GO), nach spätestens 30 s.
+
 ### Erforderliche HACS-Karten
 
 Die Dashboard-Karte benötigt folgende HACS Frontend-Erweiterungen:
@@ -64,11 +66,13 @@ Die Dashboard-Karte benötigt folgende HACS Frontend-Erweiterungen:
 | HACS-Karte | Zweck | HACS-Suche |
 |---|---|---|
 | [**Vertical Stack In Card**](https://github.com/ofekashery/vertical-stack-in-card) | Äußerer Container ohne Rahmen | `vertical-stack-in-card` |
-| [**card-mod**](https://github.com/thomasloven/lovelace-card-mod) | CSS-Styling (Rahmen entfernen, Farben) | `card-mod` |
+| [**UIX (UI eXtension)**](https://github.com/Lint-Free-Technology/uix) | CSS-Styling (Rahmen entfernen, Farben, Slider im Lokalbetrieb ausgrauen). Wird als Integration installiert, Doku: [uix.lf.technology](https://uix.lf.technology/) | `uix` |
 | [**button-card**](https://github.com/custom-cards/button-card) | Steuerbuttons mit Tooltips, Mehrzeilen-Beschriftung und individueller Icon-Größe | `button-card` |
 | [**Mushroom**](https://github.com/piitaya/lovelace-mushroom) | Template-Karte für Durchfluss-Status | `mushroom` |
 
 Ohne diese Karten wird die Dashboard-Karte nicht korrekt dargestellt. Die Modbus-YAML selbst funktioniert unabhängig davon.
+
+**Seit v4.4 UIX statt card-mod:** Die Karte nutzt `uix:` statt `card_mod:`. card-mod wird seit Februar 2026 nicht mehr weiterentwickelt; UIX stammt vom selben Umfeld und versteht auch alte `card_mod:`-Blöcke. Mit card-mod statt UIX funktioniert die Karte weiterhin, es fehlen aber das Styling und das Ausgrauen der Slider und Regelungsart-Buttons im Lokalbetrieb.
 
 ## Überwachung & Benachrichtigungen
 
