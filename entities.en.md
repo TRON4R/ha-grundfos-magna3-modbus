@@ -128,8 +128,9 @@ script.magna3_set_max_flow_limit
 
 ## Automations
 
-MAGNA3: Modbus Watchdog  ->  automation.magna3_modbus_watchdog
+MAGNA3: Pump forced to local  ->  automation.magna3_pump_forced_to_local
 MAGNA3: Alarm Notification  ->  automation.magna3_alarm_notification
+MAGNA3: Warning Notification  ->  automation.magna3_warning_notification
 MAGNA3: High Current Warning  ->  automation.magna3_high_current_warning
 MAGNA3: Sync Setpoint %  ->  automation.magna3_sync_setpoint
 MAGNA3: Sync Setpoint m  ->  automation.magna3_sync_setpoint_m

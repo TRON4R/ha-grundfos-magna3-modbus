@@ -1,5 +1,32 @@
 # Changelog
 
+## v4.5 (2026-11-16)
+
+**Bugfix: „Einstellungen sichern“ im Lokalbetrieb konnte konstante Drehzahl mit 0 % ins EEPROM schreiben.** Der Button schaltete im ersten Schritt nach Remote, ohne die Vorgabe-Register vorzubelegen. Nach einem Aus/Ein der Pumpe stehen 00102/00104 auf 0; genau diese Werte wären dann gesichert worden (dieselbe Falle, gegen die v4.3.4 Remote Start absichert). Jetzt ruft auch `magna3_to_local_copy` zuerst `magna3_prepare_remote` auf, und der Button ist im Lokalbetrieb ausgegraut wie Slider und Regelungsart-Buttons.
+
+**Bugfix: Remote-Vorbereitung konnte eine gerade gemachte Änderung zurücksetzen.** `magna3_prepare_remote` nutzte die zuletzt gelesenen Werte und schrieb sie auch, wenn die Pumpe schon in Remote war (Stop, Alarm-Reset). Wer den Sollwert änderte und innerhalb von ~2 s „Pumpe stoppen“ drückte, bekam den alten Wert zurück. Jetzt liest das Skript Status, Regelungsart, Betriebsmodus und Sollwert frisch; in Remote schreibt es nichts, im Lokalbetrieb kopiert es zusätzlich den Betriebsmodus (Reg 00204 → 00103), damit eine lokale Min-/Max-Kennlinie beim Wechsel erhalten bleibt. Werte werden auf gültige Codes bzw. 0–100 % geprüft.
+
+**Bugfix: Fehlende Sollwert-Untergrenze wurde als 0 gerechnet.** Fiel nur Reg 00215 aus, zeigte „Sollwert (Meter)“ einen falschen Wert, und `magna3_set_sollwert_meter` hätte einen falschen Prozentwert geschrieben. Jetzt muss jeder Eingang gültig sein (0 ≤ min < max ≤ 100).
+
+**Bugfix: Zweiter Klick auf eine Regelungsart innerhalb von 2 s ging verloren** (seit v4.4.1, durch das Nachlesen). `magna3_set_regelungsart` läuft jetzt im Modus `restart`; der letzte Klick gilt. Nur Codes aus Reg 00102 werden geschrieben; `magna3_set_sollwert_prozent` schreibt nur 0–100 %.
+
+**Verbesserung: Slider zeigen nach einem Regelungsart-Wechsel sofort den passenden Sollwert.** Die Pumpe führt je Regelungsart einen eigenen Sollwert (gemessen: FlowAdapt 7,5 %, Proportionaldruck 22 %). `magna3_set_regelungsart` liest deshalb 2 s nach dem Schreiben neben Reg 00203 auch Reg 00338 nach; vorher zeigten die Slider bis zu 15 s den Sollwert der vorherigen Regelungsart.
+
+**Bugfix: Meter-Slider konnte veraltet bleiben.** „Beide Slider aus Pumpenwert aktualisieren“ löst jetzt auch bei Änderungen von „Sollwert (Meter)“ aus (z. B. wenn nach einem Aus/Ein ein Eingangsregister erst später zurückkommt oder sich nach einem Regelungsart-Wechsel der Bereich ändert).
+
+**Geändert: „nicht verfügbar“ statt Scheinwerten bei Verbindungsausfall.** Bisher zeigten bei unerreichbarer Pumpe die 11 Statusbit-Sensoren „aus“, der Alarmtext „Kein Alarm“, Energiekosten und Effizienz 0 (Energiekosten fielen in der Statistik z. B. von 37,20 € auf 0 und zurück) und die Pumpenuhr 1970. Jetzt übernehmen alle abgeleiteten Template-Sensoren die Verfügbarkeit ihrer Quellen. Ausnahme: „Durchfluss L/h“ zeigt weiter 0, damit Verlaufskurven durchgehend bleiben. Außerdem melden 24 Messregister den Grundfos-Wert 0xFFFF („nicht verfügbar“) per `nan_value` als nicht verfügbar statt z. B. 655,35 K. Wer Automationen auf diese Sensoren hat: `unavailable` statt `off`/0 berücksichtigen.
+
+**Verbesserung: Alarm- und Warnungsmeldung mit aktuellem Code.** Statusbit und Code werden getrennt gelesen; die Meldung konnte deshalb den alten Code (oft 0) enthalten. Jetzt wird der Code vor der Meldung frisch gelesen, ein Codewechsel bei aktivem Alarm aktualisiert dieselbe Meldung (`notification_id`).
+
+Sonstiges:
+- Tooltip „Einstellungen sichern“: speichert Betriebsmodus statt „On/Off-Zustand“ und schaltet die Pumpe immer ein (ein gesichertes „Aus“ ließe die Heizkreispumpe stillstehen). Tooltip und Meldung „Alarm zurücksetzen“: schaltet die Pumpe ein.
+- README: Installationshinweis „Zeile 44“ ersetzt, 00308 wird alle 15 s gelesen, nur eine Sprachfassung installieren, pumpenspezifische Werte (Gauges, Meter-Slider, 5 A), Verhalten bei Verbindungsausfall, UIX-Hinweis präzisiert (Buttons grauen auch ohne UIX aus).
+- Entitätslisten: veralteten „Modbus Watchdog“ durch „Pumpe wurde auf Lokal gezwungen“ ersetzt, Warnungs-Automation ergänzt.
+- Upgrade: Paket ersetzen, `modbus.reload` sowie Templates, Skripte und Automationen neu laden (kein Neustart nötig); Karte neu einfügen.
+- Betrifft beide YAMLs und beide Karten.
+
+**Hinweis:** Mit den letzten Releases sollte sich die ganze Bedienung in Home Assistant **deutlich flüssiger anfühlen**. Änderungen erscheinen innerhalb weniger Sekunden in allen Buttons und Anzeigen und brauchen nicht mehr 10 bis 30 Sekunden wie zuvor. Auch die Fehler, die sich früher in die Einstellungen einschleichen konnten, sollten der Vergangenheit angehören. Wem das bisherige Look & Feel nicht gefallen hat, sollte dieser Version noch eine Chance geben – es ist eine deutliche Verbesserung.
+
 ## v4.4.1 (2026-11-16)
 
 **Verbesserung: Diagramme und Slider folgen einer Sollwert-Änderung nach wenigen Sekunden.** Bisher sprangen die Diagramme nach 0–15 s um (Reg 00338 wird alle 15 s gelesen) und die Slider erst 20 s nach der letzten Bewegung (Ruhezeit aus v4.3.5, nötig wegen der bis zu 15 s alten Pumpenwerte). Jetzt liest „Beide Slider aus Pumpenwert aktualisieren“ 2 s nach jeder Slider-Bewegung Reg 00338 per `homeassistant.update_entity` nach; die Ruhezeit sinkt auf 4 s. Gemessen vorher: Diagramme +3 bis +11 s, %-Slider +20 bis +21 s.

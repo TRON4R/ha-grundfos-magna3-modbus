@@ -39,13 +39,15 @@ All sensors and registers have been carefully defined with correct and complete 
    homeassistant:
      packages: !include_dir_named packages
    ```
-3. Update the CIM 500 IP address (line 44 in the YAML):
+3. Update the CIM 500 IP address (in the `modbus:` block, key `host:`):
    ```yaml
    host: 192.168.2.7  # ← CHANGE: IP address of your CIM 500
    ```
 4. Restart Home Assistant
 
 > **German version:** All entity names, automation texts and comments in German: `grundfos_magna3.de.yaml` and `dashboard_card.de.yaml`.
+>
+> **Install only one language version.** Both use the same `unique_id`s and the same Modbus hub; together they collide. When switching languages, remove the old file. For a second pump, the hub name, `unique_id`s and entity IDs must be changed.
 
 ## Dashboard Card (optional)
 </p>
@@ -60,6 +62,10 @@ The file `dashboard_card.yaml` contains a ready-to-use Lovelace card with gauges
 
 **Operation:** The setpoint sliders and the control mode buttons (Proportional Pressure, Constant Pressure, AutoAdapt, FlowAdapt) only take effect while HA controls the pump (Remote). In local mode the pump ignores these requests, so they are greyed out then. First "Start HA Control", then change setpoint or control mode; to store it permanently use "Save Settings & End HA Control". After start or end the display switches after about 2 s; if control changes some other way (pump display, Grundfos GO), after 30 s at most.
 
+"Save Settings & End HA Control" is only available under HA control and always switches the pump on, even if it was stopped via HA before: a stored "Off" would leave the heating circuit pump standing after control ends. "Reset Alarm" takes over control and switches the pump on as well.
+
+**Pump-specific values:** The card's gauge maxima (153 W, 4530 rpm, 5500 L/h, 10 m), the maximum of the meter slider (10 m) and the 5 A current threshold in `magna3_high_current` fit my pump. For a different pump size please adjust them (see the pump's data sheet).
+
 ### Required HACS Cards
 
 The dashboard card requires the following HACS frontend extensions:
@@ -73,7 +79,7 @@ The dashboard card requires the following HACS frontend extensions:
 
 Without these cards the dashboard card will not render correctly. The Modbus YAML itself works independently.
 
-**UIX instead of card-mod since v4.4:** the card uses `uix:` instead of `card_mod:`. card-mod has not been developed further since February 2026; UIX comes from the same circle and also understands old `card_mod:` blocks. With card-mod instead of UIX the card still works, but the styling and the greying out of the sliders and control mode buttons in local mode are missing.
+**UIX instead of card-mod since v4.4:** the card uses `uix:` instead of `card_mod:`. card-mod has not been developed further since February 2026; UIX comes from the same circle and also understands old `card_mod:` blocks. With card-mod instead of UIX the card still works, but the styling and the greying out of the sliders in local mode are missing. The buttons are greyed out by button-card itself, which also works without UIX.
 
 ## Monitoring & Notifications
 
@@ -81,10 +87,12 @@ The pump itself reports problems via two status bits in register 00201 (bit 10 "
 
 | Automation | Trigger | What it reports |
 |---|---|---|
-| `magna3_alarm_notification` | Reg 00201 bit 10 → on | 🚨 Alarm with code (Reg 00205) and plain text (e.g. "Dry running", "Overcurrent", "Sensor fault"). Pump typically shuts off |
-| `magna3_warning_notification` | Reg 00201 bit 11 → on | ⚠️ Warning with code (Reg 00206). Pump keeps running, but attention needed (e.g. sensor drift, bearing service due) |
+| `magna3_alarm_notification` | Reg 00201 bit 10 → on, code change while the alarm is active | 🚨 Alarm with code (Reg 00205, read fresh before notifying) and plain text (e.g. "Dry running", "Overcurrent", "Sensor fault"). A new code updates the same notification. Pump typically shuts off |
+| `magna3_warning_notification` | Reg 00201 bit 11 → on, code change while the warning is active | ⚠️ Warning with code (Reg 00206, read fresh; a new code updates the same notification). Pump keeps running, but attention needed (e.g. sensor drift, bearing service due) |
 | `magna3_high_current` | Motor current > 5 A for 5 min | ⚠️ Early indicator of mechanical issues — before the pump itself triggers an overtemperature shutdown |
 | `magna3_forced_to_local_detected` | Reg 00201 bit 12 → on | ⚠️ Pump was forced into local mode by something other than HA (interaction at the pump display, Grundfos GO app, digital input) — HA control is not possible while this lasts |
+
+**Connection loss:** If the pump cannot be reached (e.g. without power), the derived sensors (status bits, plain texts, energy cost, efficiency …) are "unavailable" instead of "off", "No alarm" or 0. Measurement registers returning the Grundfos value 0xFFFF ("not available") are treated the same way. Exception: "Flow Rate L/h" shows 0 then, so history graphs next to other devices stay continuous.
 
 **Important:** Status registers are polled **every 30 seconds** via Modbus, **regardless** of whether HA is controlling the pump or the pump is running locally. Alarms during purely local pump operation still reliably reach the HA notification drawer.
 
@@ -123,7 +131,7 @@ The pump itself reports problems via two status bits in register 00201 (bit 10 "
 | 00303 | Relative performance | % | 15s |
 | 00304 | Speed | rpm | 15s |
 | 00305 | Frequency | Hz | 15s |
-| 00308 | Setpoint (current) | % | 30s |
+| 00308 | Setpoint (current) | % | 15s |
 | 00309 | Motor current | A | 30s |
 | 00310 | DC link voltage | V | 30s |
 | 00312-13 | Power consumption | W | 15s |

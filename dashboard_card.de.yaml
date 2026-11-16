@@ -257,14 +257,18 @@ cards:
         show_name: true
         show_icon: true
         color: "#44739E"
+        triggers_update:
+          - binary_sensor.magna3_remote_modus
         tap_action:
           action: perform-action
           perform_action: script.magna3_to_local_copy
         tooltip:
           content: >-
             Gibt die Steuerung an die Pumpe zurück und speichert Sollwert,
-            Regelungsart und On/Off-Zustand im Pumpen-EEPROM.
+            Regelungsart und Betriebsmodus im Pumpen-EEPROM. Die Pumpe wird dabei
+            eingeschaltet (auch wenn sie vorher per HA gestoppt war).
             Nach Änderungen via HA verwenden, damit sie einen Stromausfall überleben.
+            Nur unter HA-Steuerung bedienbar.
           placement: bottom
           arrow: true
         # Fester Rahmen (vertical-stack-in-card entfernt ihn sonst je nach Ladezeitpunkt).
@@ -279,6 +283,8 @@ cards:
           card:
             - padding: 6px
             - height: 110px
+            - opacity: "[[[ return states['binary_sensor.magna3_remote_modus']?.state === 'on' ? '1' : '0.4' ]]]"
+            - pointer-events: "[[[ return states['binary_sensor.magna3_remote_modus']?.state === 'on' ? 'auto' : 'none' ]]]"
           grid:
             - grid-template-areas: '"i" "n"'
             - grid-template-columns: 1fr
@@ -608,7 +614,7 @@ cards:
         tooltip:
           content: >-
             Setzt aktive Pumpen-Alarme zurück (durch einen Rising-Edge-Trigger auf Reg 00101 Bit 2).
-            Nebeneffekt: schaltet die Pumpe in HA-Steuerung.
+            Nebeneffekt: schaltet die Pumpe in HA-Steuerung und ein.
             Erst nach Behebung der Fehlerursache anwenden.
           placement: bottom
           arrow: true

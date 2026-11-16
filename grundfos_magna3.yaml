@@ -1,7 +1,7 @@
 # ==============================================================================
 # GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration
 # ==============================================================================
-# Version:       v4.4.1 (2026-11-16)
+# Version:       v4.5 (2026-11-16)
 # CIM 500 Modbus TCP Configuration
 # Documentation: Grundfos 98367081 05.2025
 # Repo:          https://github.com/TRON4R/ha-grundfos-magna3-modbus
@@ -149,6 +149,7 @@ modbus:
         address: 201  # Register 00202
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         unit_of_measurement: "%"
         state_class: measurement
         scale: 0.01
@@ -228,6 +229,7 @@ modbus:
         address: 209  # Register 00210
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         # no device_class, as the unit depends on register 209
         # no state_class: measurement, this is a minimum value
         slave: 1
@@ -238,6 +240,7 @@ modbus:
         address: 210  # Register 00211
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         # no device_class, as the unit depends on register 209
         # no state_class: measurement, this is a maximum value
         slave: 1
@@ -248,6 +251,7 @@ modbus:
         address: 211  # Register 00212
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         unit_of_measurement: "Hz"
         device_class: frequency
         # state_class: measurement # not set, not a statistical value
@@ -261,6 +265,7 @@ modbus:
         address: 212  # Register 00213
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         unit_of_measurement: "%"
         # state_class: measurement # not set, not a statistical value
         scale: 0.01
@@ -273,6 +278,7 @@ modbus:
         address: 213  # Register 00214
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         unit_of_measurement: "%"
         # state_class: measurement # not set, not a statistical value
         scale: 0.01
@@ -285,6 +291,7 @@ modbus:
         address: 214  # Register 00215
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         unit_of_measurement: "%"
         # state_class: measurement # not set, not a statistical value
         scale: 0.01
@@ -297,6 +304,7 @@ modbus:
         address: 215  # Register 00216
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         unit_of_measurement: "%"
         # state_class: measurement # not set, not a statistical value
         scale: 0.01
@@ -320,6 +328,7 @@ modbus:
         address: 221  # Register 00222
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         # No device_class, dimensionless factor
         state_class: measurement
         scale: 0.1
@@ -333,6 +342,7 @@ modbus:
         address: 222  # Register 00223
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         unit_of_measurement: "s"     # Important for duration
         device_class: duration
         state_class: measurement
@@ -369,6 +379,7 @@ modbus:
         address: 300  # Register 00301
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         unit_of_measurement: "m"
         device_class: distance
         state_class: measurement
@@ -382,6 +393,7 @@ modbus:
         address: 301  # Register 00302
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         unit_of_measurement: "m³/h"
         device_class: volume_flow_rate # added, HA now supports volume flow rates
         state_class: measurement
@@ -396,6 +408,7 @@ modbus:
         address: 302  # Register 00303
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         unit_of_measurement: "%"
         # no device_class, HA only supports battery, humidity or power_factor for percentages
         state_class: measurement
@@ -409,6 +422,7 @@ modbus:
         address: 303  # Register 00304
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         unit_of_measurement: "rpm"
         # device_class: frequency # frequency is wrong here. HA has no device_class for RPM, better none than a wrong one
         state_class: measurement
@@ -420,6 +434,7 @@ modbus:
         address: 304  # Register 00305
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         unit_of_measurement: "Hz"
         device_class: frequency
         state_class: measurement
@@ -451,6 +466,7 @@ modbus:
         address: 307  # Register 00308
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         unit_of_measurement: "%"
         state_class: measurement
         scale: 0.01
@@ -464,6 +480,7 @@ modbus:
         address: 308  # Register 00309
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         unit_of_measurement: "A"
         device_class: current
         state_class: measurement
@@ -477,6 +494,7 @@ modbus:
         address: 309  # Register 00310
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         unit_of_measurement: "V"
         device_class: voltage
         state_class: measurement
@@ -501,6 +519,7 @@ modbus:
         address: 320  # Register 00321
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         unit_of_measurement: "K"  # Grundfos delivers raw Kelvin values; HA converts automatically to C/F via device_class
         device_class: temperature
         state_class: measurement
@@ -514,6 +533,7 @@ modbus:
         address: 321  # Register 00322
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         unit_of_measurement: "K"  # Grundfos delivers raw Kelvin values; HA converts automatically to C/F via device_class
         device_class: temperature
         state_class: measurement
@@ -527,6 +547,7 @@ modbus:
         address: 325  # Register 00326
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         unit_of_measurement: "Wh/m³"
         state_class: measurement
         slave: 1
@@ -579,6 +600,7 @@ modbus:
         address: 337  # Register 00338
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         unit_of_measurement: "%"
         state_class: measurement
         scale: 0.01
@@ -592,6 +614,7 @@ modbus:
         address: 338  # Register 00339
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         unit_of_measurement: "bar"
         device_class: pressure
         state_class: measurement
@@ -614,6 +637,7 @@ modbus:
         address: 344  # Register 00345
         input_type: input
         data_type: uint16
+        nan_value: 0xFFFF  # Grundfos: 0xFFFF = not available
         unit_of_measurement: "m³/h"
         state_class: measurement
         device_class: volume_flow_rate
@@ -724,6 +748,7 @@ template:
       # Bit 0: LowFlowStop
       - name: "MAGNA3 Low Flow Stop"
         unique_id: magna3_status_low_flow_stop
+        availability: "{{ states('sensor.magna3_status_bits_raw') | is_number }}"
         state: >
           {{ states('sensor.magna3_status_bits_raw') | int(0) | bitwise_and(1) > 0 }}
         device_class: running
@@ -732,6 +757,7 @@ template:
       # Bit 1: CopyToLocal
       - name: "MAGNA3 Copy to Local"
         unique_id: magna3_status_copy_to_local
+        availability: "{{ states('sensor.magna3_status_bits_raw') | is_number }}"
         state: >
           {{ states('sensor.magna3_status_bits_raw') | int(0) | bitwise_and(2) > 0 }}
         icon: mdi:content-copy
@@ -739,6 +765,7 @@ template:
       # Bit 2: MaxFlowLimit Enabled
       - name: "MAGNA3 FlowLimit Active"
         unique_id: magna3_status_flowlimit_enabled
+        availability: "{{ states('sensor.magna3_status_bits_raw') | is_number }}"
         state: >
           {{ states('sensor.magna3_status_bits_raw') | int(0) | bitwise_and(4) > 0 }}
         icon: mdi:water-check
@@ -746,6 +773,7 @@ template:
       # Bit 6: Rotation (pump running)
       - name: "MAGNA3 Running"
         unique_id: magna3_status_rotation
+        availability: "{{ states('sensor.magna3_status_bits_raw') | is_number }}"
         state: >
           {{ states('sensor.magna3_status_bits_raw') | int(0) | bitwise_and(64) > 0 }}
         device_class: running
@@ -754,6 +782,7 @@ template:
       # Bit 8: AccessMode (Remote/Local)
       - name: "MAGNA3 Remote Mode"
         unique_id: magna3_status_remote_mode
+        availability: "{{ states('sensor.magna3_status_bits_raw') | is_number }}"
         state: >
           {{ states('sensor.magna3_status_bits_raw') | int(0) | bitwise_and(256) > 0 }}
         device_class: connectivity
@@ -762,6 +791,7 @@ template:
       # Bit 9: OnOff
       - name: "MAGNA3 Powered On"
         unique_id: magna3_status_on_off
+        availability: "{{ states('sensor.magna3_status_bits_raw') | is_number }}"
         state: >
           {{ states('sensor.magna3_status_bits_raw') | int(0) | bitwise_and(512) > 0 }}
         device_class: power
@@ -770,6 +800,7 @@ template:
       # Bit 10: Alarm
       - name: "MAGNA3 Alarm"
         unique_id: magna3_status_alarm
+        availability: "{{ states('sensor.magna3_status_bits_raw') | is_number }}"
         state: >
           {{ states('sensor.magna3_status_bits_raw') | int(0) | bitwise_and(1024) > 0 }}
         device_class: problem
@@ -778,6 +809,7 @@ template:
       # Bit 11: Warning
       - name: "MAGNA3 Warning"
         unique_id: magna3_status_warning
+        availability: "{{ states('sensor.magna3_status_bits_raw') | is_number }}"
         state: >
           {{ states('sensor.magna3_status_bits_raw') | int(0) | bitwise_and(2048) > 0 }}
         device_class: problem
@@ -786,6 +818,7 @@ template:
       # Bit 12: ForcedToLocal - remote control off, local manual mode on
       - name: "MAGNA3 Forced to Local"
         unique_id: magna3_status_forced_to_local
+        availability: "{{ states('sensor.magna3_status_bits_raw') | is_number }}"
         state: >
           {{ states('sensor.magna3_status_bits_raw') | int(0) | bitwise_and(4096) > 0 }}
         device_class: problem
@@ -794,6 +827,7 @@ template:
       # Bit 13: AtMaxSpeed
       - name: "MAGNA3 At Max Speed"
         unique_id: magna3_status_at_max_speed
+        availability: "{{ states('sensor.magna3_status_bits_raw') | is_number }}"
         state: >
           {{ states('sensor.magna3_status_bits_raw') | int(0) | bitwise_and(8192) > 0 }}
         icon: mdi:speedometer
@@ -801,6 +835,7 @@ template:
       # Bit 15: AtMinSpeed
       - name: "MAGNA3 At Min Speed"
         unique_id: magna3_status_at_min_speed
+        availability: "{{ states('sensor.magna3_status_bits_raw') | is_number }}"
         state: >
           {{ states('sensor.magna3_status_bits_raw') | int(0) | bitwise_and(32768) > 0 }}
         icon: mdi:speedometer
@@ -813,6 +848,7 @@ template:
       # Computes software version and date from BCD values in registers 00034 to 00037
       - name: "MAGNA3 Software Version" 
         unique_id: magna3_software_version
+        availability: "{{ states('sensor.magna3_software_version_hi_raw') | is_number and states('sensor.magna3_software_version_lo_raw') | is_number and states('sensor.magna3_software_date_daymonth_raw') | is_number and states('sensor.magna3_software_date_year_raw') | is_number }}"
         state: >
           {% set hi = states('sensor.magna3_software_version_hi_raw') | int(0) %}
           {% set lo = states('sensor.magna3_software_version_lo_raw') | int(0) %}
@@ -840,6 +876,7 @@ template:
       # Control mode as text
       - name: "MAGNA3 Control Mode"
         unique_id: magna3_control_mode_text
+        availability: "{{ states('sensor.magna3_control_mode_code') | is_number }}"
         state: >
           {% set mode = states('sensor.magna3_control_mode_code') | int(0) %}
           {% if mode == 0 %}Constant Speed
@@ -862,6 +899,7 @@ template:
       # Operation mode as text
       - name: "MAGNA3 Operation Mode"
         unique_id: magna3_operation_mode_text
+        availability: "{{ states('sensor.magna3_operation_mode_code') | is_number }}"
         state: >
           {% set mode = states('sensor.magna3_operation_mode_code') | int(0) %}
           {% if mode == 0 %}Auto-Control
@@ -874,6 +912,7 @@ template:
       # Alarm code as text (most common codes)
       - name: "MAGNA3 Alarm Text"
         unique_id: magna3_alarm_text
+        availability: "{{ states('sensor.magna3_alarm_code') | is_number }}"
         state: >
           {% set code = states('sensor.magna3_alarm_code') | int(0) %}
           {% if code == 0 %}No Alarm
@@ -896,6 +935,7 @@ template:
       # Energy cost (adjustable)
       - name: "MAGNA3 Energy Cost"
         unique_id: magna3_energy_cost
+        availability: "{{ states('sensor.magna3_energy_consumption') | is_number }}"
         unit_of_measurement: "EUR"
         device_class: monetary
         state_class: total
@@ -906,6 +946,7 @@ template:
       # Calculate efficiency
       - name: "MAGNA3 Efficiency"
         unique_id: magna3_efficiency
+        availability: "{{ states('sensor.magna3_power_consumption') | is_number and states('sensor.magna3_volume_flow') | is_number and states('sensor.magna3_head_pressure') | is_number }}"
         unit_of_measurement: "%"
         state_class: measurement
         state: >
@@ -931,14 +972,16 @@ template:
         # Only valid while the pump reports in meters (unit 2) and runs a
         # closed-loop mode. In constant speed (0) / frequency (1) it reports range
         # and maximum in %, and the formula would yield nonsense (e.g. "43 m").
+        # Every input must be a valid number; a missing value must not count as 0
+        # (a missing lower bound 00215 would otherwise give a wrong meter value).
         availability: >
           {% set sp = states('sensor.magna3_user_setpoint') | float(-1) %}
           {% set s_max = states('sensor.magna3_feedback_sensor_max') | float(0) %}
-          {% set r_min_pct = states('sensor.magna3_setpoint_range_min') | float(0) %}
-          {% set r_max_pct = states('sensor.magna3_setpoint_range_max') | float(0) %}
+          {% set r_min_pct = states('sensor.magna3_setpoint_range_min') | float(-1) %}
+          {% set r_max_pct = states('sensor.magna3_setpoint_range_max') | float(-1) %}
           {% set einheit = states('sensor.magna3_feedback_sensor_unit') | int(-1) %}
           {% set modus = states('sensor.magna3_control_mode_code') | int(-1) %}
-          {{ sp >= 0 and s_max > 0 and r_max_pct > r_min_pct
+          {{ 0 <= sp <= 100 and s_max > 0 and 0 <= r_min_pct < r_max_pct <= 100
              and einheit == 2 and modus not in [-1, 0, 1] }}
         state: >
           {% set sp = states('sensor.magna3_user_setpoint') | float(0) %}
@@ -952,6 +995,7 @@ template:
       
       - name: "MAGNA3 Pump RTC"
         unique_id: magna3_pump_rtc_formatted
+        availability: "{{ states('sensor.magna3_pump_unix_rtc') | is_number }}"
         device_class: timestamp
         state: >
           {{ states('sensor.magna3_pump_unix_rtc') | int(0) | as_datetime }}
@@ -959,6 +1003,7 @@ template:
 
       - name: "MAGNA3 Flow Estimation State Text"
         unique_id: magna3_flow_estimation_text
+        availability: "{{ states('sensor.magna3_flow_estimation_state') | is_number }}"
         state: >
           {% set status = states('sensor.magna3_flow_estimation_state') | int(0) %}
           {% if status == 0 %}Within range
@@ -971,6 +1016,7 @@ template:
         # Control source as text
       - name: "MAGNA3 Control Source"
         unique_id: magna3_control_source_text
+        availability: "{{ states('sensor.magna3_control_source_code') | is_number }}"
         state: >
           {% set source = states('sensor.magna3_control_source_code') | int(0) %}
           {% if source == 1 %}Display
@@ -997,12 +1043,14 @@ template:
         state_class: measurement
         # device_class: (omitted)  # HA has no duration device_class for "months"
         availability: >
-          {{ (states('sensor.magna3_bearing_service_raw') | int(0)) | bitwise_and(0xFF) != 255 }}
+          {{ states('sensor.magna3_bearing_service_raw') | is_number
+             and (states('sensor.magna3_bearing_service_raw') | int) | bitwise_and(0xFF) != 255 }}
         state: >
           {{ (states('sensor.magna3_bearing_service_raw') | int(0)) | bitwise_and(0xFF) }}
 
       - name: "MAGNA3 Bearing Service Type"
         unique_id: magna3_bearing_service_type
+        availability: "{{ states('sensor.magna3_bearing_service_raw') | is_number }}"
         state: >
           {% set v = states('sensor.magna3_bearing_service_raw') | int(0) %}
           {% set t = (v // 256) | bitwise_and(0x01) %}
@@ -1012,6 +1060,7 @@ template:
 
       - name: "MAGNA3 Drive State"
         unique_id: magna3_drive_state_text
+        availability: "{{ states('sensor.magna3_drive_state_code') | is_number }}"
         state: >
           {% set s = states('sensor.magna3_drive_state_code') | int(-1) %}
           {% if s == 0 %}Stopped
@@ -1052,7 +1101,7 @@ input_number:
   magna3_setpoint_m:
     name: "MAGNA3 Setpoint (m)"
     min: 0
-    max: 10
+    max: 10  # increase for pumps with a higher head
     step: 0.1
     unit_of_measurement: "m"
     icon: mdi:ruler
@@ -1147,17 +1196,19 @@ script:
         description: "Setpoint in percent (0-100)"
         example: "45.5"
     sequence:
+      - variables:
+          wert: >
+            {{ prozent | float(-1) if prozent is defined
+               else states('input_number.magna3_setpoint_percent') | float(-1) }}
+      # Do not write values outside 0-100 % (e.g. from a direct script call)
+      - condition: template
+        value_template: "{{ 0 <= wert <= 100 }}"
       - action: modbus.write_register
         data:
           hub: Grundfos_MAGNA3
           address: 103  # Register 00104
           slave: 1
-          value: >
-            {% if prozent is defined %}
-              {{ (prozent | float * 100) | int }}
-            {% else %}
-              {{ (states('input_number.magna3_setpoint_percent') | float * 100) | int }}
-            {% endif %}
+          value: "{{ (wert * 100) | round(0) | int }}"
   
   magna3_set_setpoint_m:
     alias: "MAGNA3: Set Setpoint (m)"
@@ -1169,14 +1220,15 @@ script:
       - variables:
           m: "{{ meter | float if meter is defined else states('input_number.magna3_setpoint_m') | float }}"
           s_max: "{{ states('sensor.magna3_feedback_sensor_max') | float(0) }}"
-          r_min_pct: "{{ states('sensor.magna3_setpoint_range_min') | float(0) }}"
-          r_max_pct: "{{ states('sensor.magna3_setpoint_range_max') | float(0) }}"
+          r_min_pct: "{{ states('sensor.magna3_setpoint_range_min') | float(-1) }}"
+          r_max_pct: "{{ states('sensor.magna3_setpoint_range_max') | float(-1) }}"
           einheit: "{{ states('sensor.magna3_feedback_sensor_unit') | int(-1) }}"
           modus: "{{ states('sensor.magna3_control_mode_code') | int(-1) }}"
-      # Only convert while the pump reports in meters and runs closed loop
+      # Only convert when all inputs are valid (no fallback 0),
+      # the pump reports in meters and runs closed loop
       - condition: template
         value_template: >
-          {{ s_max > 0 and r_max_pct > r_min_pct
+          {{ s_max > 0 and 0 <= r_min_pct < r_max_pct <= 100
              and einheit == 2 and modus not in [-1, 0, 1] }}
       - variables:
           rmin: "{{ (r_min_pct / 100) * s_max }}"
@@ -1198,44 +1250,69 @@ script:
   # Set control mode
   magna3_set_control_mode:
     alias: "MAGNA3: Set Control Mode"
+    # restart: a second click within the 2 s re-read time is executed instead of dropped
+    mode: restart
     fields:
       mode:
         description: "Mode code (6=Prop, 128=AUTO, 129=FLOW)"
         example: "128"
     sequence:
+      - variables:
+          code: >
+            {{ mode | int(-1) if mode is defined
+               else states('input_number.magna3_control_mode') | int(-1) }}
+      # Only write control modes listed for reg 00102 (Grundfos 98367081)
+      - condition: template
+        value_template: "{{ code in [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 128, 129, 130, 131] }}"
       - action: modbus.write_register
         data:
           hub: Grundfos_MAGNA3
           address: 101  # Register 00102
           slave: 1
-          value: >
-            {% if mode is defined %}
-              {{ mode | int }}
-            {% else %}
-              {{ states('input_number.magna3_control_mode') | int }}
-            {% endif %}
-      # Re-read the active control mode right away (otherwise up to 30 s) so the dashboard switches at once
+          value: "{{ code }}"
+      # Re-read the active control mode right away (otherwise up to 30 s) so the dashboard switches at once.
+      # Also the setpoint (reg 00338): the pump keeps a separate setpoint per control mode,
+      # otherwise the sliders show the previous mode's setpoint for up to 15 s.
       - delay: 2
       - action: homeassistant.update_entity
         target:
-          entity_id: sensor.magna3_control_mode_code
+          entity_id:
+            - sensor.magna3_control_mode_code
+            - sensor.magna3_user_setpoint
   
   # Pre-load the bus context before the pump switches to Remote (internal,
-  # called by Remote Start, Remote Stop and Reset Alarm).
-  # The request registers 00102 (control mode) and 00104 (setpoint) read 0
-  # after every power cycle of the pump. Without pre-loading, the pump would
-  # run in Remote with control mode 0 (constant speed) and a 0 % setpoint, and a
-  # subsequent "Switch to Local (adopt setpoint)" would store that permanently
-  # in the EEPROM. So the active values (reg 00203, reg 00338) are copied into
-  # the request registers first; after the switch the pump keeps running exactly
-  # as before. Returns {"ok": true/false}.
+  # called by Remote Start, Remote Stop, Reset Alarm and "Save Settings").
+  # The request registers 00102 (control mode), 00103 (operation mode) and 00104
+  # (setpoint) read 0 after every power cycle of the pump. Without pre-loading,
+  # the pump would run in Remote with control mode 0 (constant speed) and a 0 %
+  # setpoint, and a subsequent "Save Settings" would store that permanently in the
+  # EEPROM. So the active values (reg 00203, 00204, 00338) are read fresh and
+  # copied into the request registers; after the switch the pump keeps running
+  # exactly as before.
+  # If the pump is already in Remote, the request registers already hold HA's
+  # values; then nothing is written (otherwise a value not yet re-read could undo
+  # a change just made). Returns {"ok": true/false}.
   magna3_prepare_remote:
     alias: "MAGNA3: Prepare Remote (internal)"
     sequence:
+      # Read fresh instead of using values up to 30 s old
+      - action: homeassistant.update_entity
+        target:
+          entity_id:
+            - sensor.magna3_status_bits_raw
+            - sensor.magna3_control_mode_code
+            - sensor.magna3_operation_mode_code
+            - sensor.magna3_user_setpoint
       - variables:
+          status: "{{ states('sensor.magna3_status_bits_raw') | int(-1) }}"
+          ist_remote: "{{ status >= 0 and status | bitwise_and(256) > 0 }}"
           modus: "{{ states('sensor.magna3_control_mode_code') | int(-1) }}"
+          betrieb: "{{ states('sensor.magna3_operation_mode_code') | int(-1) }}"
           sollwert: "{{ states('sensor.magna3_user_setpoint') | float(-1) }}"
-          ok: "{{ modus >= 0 and sollwert >= 0 }}"
+          werte_ok: >
+            {{ modus in [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 128, 129, 130, 131]
+               and betrieb in [0, 4, 6] and 0 <= sollwert <= 100 }}
+          ok: "{{ status >= 0 and (ist_remote or werte_ok) }}"
           ergebnis: "{{ {'ok': ok} }}"
       - if:
           - condition: template
@@ -1245,15 +1322,24 @@ script:
             data:
               title: "MAGNA3"
               message: >-
-                Switch to Remote aborted: the pump's control mode or setpoint is
-                currently unavailable. Please try again in a minute.
-        else:
+                Switch to Remote aborted: the pump's status, control mode, operation
+                mode or setpoint is currently unavailable. Please try again in a minute.
+      - if:
+          - condition: template
+            value_template: "{{ ok and not ist_remote }}"
+        then:
           - action: modbus.write_register
             data:
               hub: Grundfos_MAGNA3
               address: 101  # Register 00102 = active control mode
               slave: 1
               value: "{{ modus }}"
+          - action: modbus.write_register
+            data:
+              hub: Grundfos_MAGNA3
+              address: 102  # Register 00103 = active operation mode
+              slave: 1
+              value: "{{ betrieb }}"
           - action: modbus.write_register
             data:
               hub: Grundfos_MAGNA3
@@ -1333,9 +1419,18 @@ script:
   # window, then perform the Remote->Local transition. Single-write 3 -> 16
   # proved unreliable on real MAGNA3 firmware (the pump did not always see
   # CopyToLocal as active during the same poll cycle as the bit-0 fall).
+  # The pump is always switched on (19 = On): a stored "Off" would leave the
+  # heating circuit pump standing after control ends, with no local way to start it.
+  # In local mode step 1 first switches to Remote; so that the request registers
+  # (0 after a power cycle) do not end up in the EEPROM, the bus context is
+  # pre-loaded first (as for Remote Start).
   magna3_to_local_copy:
     alias: "MAGNA3: Switch to Local (adopt setpoint)"
     sequence:
+      - action: script.magna3_prepare_remote
+        response_variable: vorbereitung
+      - condition: template
+        value_template: "{{ vorbereitung.ok }}"
       - action: modbus.write_register
         data:
           hub: Grundfos_MAGNA3
@@ -1362,7 +1457,7 @@ script:
           message: "MAGNA3 switched to local — current setpoint adopted"
           title: "MAGNA3"
 
-  # Alarm Reset
+  # Alarm Reset (switches the pump to Remote and on)
   magna3_reset_alarm:
     alias: "MAGNA3: Reset Alarm"
     sequence:
@@ -1395,7 +1490,7 @@ script:
       - action: persistent_notification.create
         data:
           title: "MAGNA3"
-          message: "Alarm reset performed (pump is now under HA control)"
+          message: "Alarm reset performed (pump is now under HA control and switched on)"
 
   # Enable AUTOADAPT
   magna3_enable_autoadapt:
@@ -1534,30 +1629,57 @@ automation:
             interacted with the pump display or the Grundfos GO app.
   
   # Alarm notification
+  # Status bit and alarm code are read separately: re-read the code before notifying.
+  # If the code changes while the alarm is active, the same notification (notification_id) is updated.
   - id: magna3_alarm_notification
     alias: "MAGNA3: Alarm Notification"
+    mode: queued
     trigger:
       - platform: state
         entity_id: binary_sensor.magna3_alarm
         to: 'on'
+      - platform: state
+        entity_id: sensor.magna3_alarm_code
+        not_to: ['unavailable', 'unknown', '0']
+    condition:
+      - condition: state
+        entity_id: binary_sensor.magna3_alarm
+        state: 'on'
     action:
+      - action: homeassistant.update_entity
+        target:
+          entity_id: sensor.magna3_alarm_code
       - action: persistent_notification.create
         data:
+          notification_id: magna3_alarm
           title: "🚨 MAGNA3 Alarm"
           message: >
             Code: {{ states('sensor.magna3_alarm_code') }}
             {{ states('sensor.magna3_alarm_text') }}
   
   # Warning notification (Reg 00201 bit 11, orange LED on the pump)
+  # As for the alarm: re-read the code, code changes update the same notification.
   - id: magna3_warning_notification
     alias: "MAGNA3: Warning Notification"
+    mode: queued
     trigger:
       - platform: state
         entity_id: binary_sensor.magna3_warning
         to: 'on'
+      - platform: state
+        entity_id: sensor.magna3_warning_code
+        not_to: ['unavailable', 'unknown', '0']
+    condition:
+      - condition: state
+        entity_id: binary_sensor.magna3_warning
+        state: 'on'
     action:
+      - action: homeassistant.update_entity
+        target:
+          entity_id: sensor.magna3_warning_code
       - action: persistent_notification.create
         data:
+          notification_id: magna3_warning
           title: "⚠️ MAGNA3 Warning"
           message: >
             Warning code: {{ states('sensor.magna3_warning_code') }}
@@ -1664,6 +1786,11 @@ automation:
       - platform: state
         entity_id: sensor.magna3_control_source_code
         id: control_source
+      # The meter value also changes without a new percent value (unit/range after a
+      # control mode change, or an input register returning later after an outage)
+      - platform: state
+        entity_id: sensor.magna3_actual_setpoint_m
+        id: pump
       - platform: state
         entity_id:
           - input_number.magna3_setpoint_percent

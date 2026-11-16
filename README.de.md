@@ -39,13 +39,15 @@ Bei der Definition aller Sensoren und Register wurde besonderer Wert auf korrekt
    homeassistant:
      packages: !include_dir_named packages
    ```
-3. IP-Adresse des CIM 500 anpassen (Zeile 44 in der YAML):
+3. IP-Adresse des CIM 500 anpassen (im `modbus:`-Block, Schlüssel `host:`):
    ```yaml
    host: 192.168.2.7  # ← ANPASSEN: IP-Adresse Deines CIM 500
    ```
 4. Home Assistant neu starten
 
 > **Englische Version:** Alle Entitätsnamen, Automationstexte und Kommentare auf Englisch: `grundfos_magna3.yaml` und `dashboard_card.yaml`.
+>
+> **Nur eine Sprachfassung installieren.** Beide nutzen dieselben `unique_id`s und denselben Modbus-Hub; zusammen kollidieren sie. Beim Wechsel der Sprache die alte Datei entfernen. Für eine zweite Pumpe müssen Hub-Name, `unique_id`s und Entitäts-IDs angepasst werden.
 
 ## Dashboard-Karte (optional)
 
@@ -58,6 +60,10 @@ Die Datei `dashboard_card.de.yaml` enthält eine fertige Lovelace-Karte mit Gaug
 **Verwendung:** Inhalt von `dashboard_card.de.yaml` im Dashboard-Editor als manuelle Karte (YAML) einfügen.
 
 **Bedienung:** Die Sollwert-Slider und die Regelungsart-Buttons (Proportionaldruck, Konstantdruck, AutoAdapt, FlowAdapt) wirken nur, solange HA die Pumpe steuert (Remote). Im Lokalbetrieb ignoriert die Pumpe diese Vorgaben, deshalb sind sie dann ausgegraut. Erst „HA-Steuerung starten“, dann Sollwert oder Regelungsart ändern, zum dauerhaften Speichern „Einstellungen sichern & HA-Steuerung beenden“. Nach Start oder Ende schaltet die Anzeige nach etwa 2 s um; ändert sich die Steuerung auf anderem Weg (Pumpendisplay, Grundfos GO), nach spätestens 30 s.
+
+„Einstellungen sichern & HA-Steuerung beenden“ ist nur unter HA-Steuerung bedienbar und schaltet die Pumpe dabei immer ein, auch wenn sie vorher per HA gestoppt war: Ein gesichertes „Aus“ ließe die Heizkreispumpe nach dem Beenden stillstehen. „Alarm zurücksetzen“ übernimmt die Steuerung und schaltet die Pumpe ebenfalls ein.
+
+**Pumpenspezifische Werte:** Die Gauge-Maxima der Karte (153 W, 4530 rpm, 5500 L/h, 10 m), das Maximum des Meter-Sliders (10 m) und die Stromschwelle 5 A in `magna3_high_current` passen zu meiner Pumpe. Bei einer anderen Baugröße bitte anpassen (Datenblatt der Pumpe).
 
 ### Erforderliche HACS-Karten
 
@@ -72,7 +78,7 @@ Die Dashboard-Karte benötigt folgende HACS Frontend-Erweiterungen:
 
 Ohne diese Karten wird die Dashboard-Karte nicht korrekt dargestellt. Die Modbus-YAML selbst funktioniert unabhängig davon.
 
-**Seit v4.4 UIX statt card-mod:** Die Karte nutzt `uix:` statt `card_mod:`. card-mod wird seit Februar 2026 nicht mehr weiterentwickelt; UIX stammt vom selben Umfeld und versteht auch alte `card_mod:`-Blöcke. Mit card-mod statt UIX funktioniert die Karte weiterhin, es fehlen aber das Styling und das Ausgrauen der Slider und Regelungsart-Buttons im Lokalbetrieb.
+**Seit v4.4 UIX statt card-mod:** Die Karte nutzt `uix:` statt `card_mod:`. card-mod wird seit Februar 2026 nicht mehr weiterentwickelt; UIX stammt vom selben Umfeld und versteht auch alte `card_mod:`-Blöcke. Mit card-mod statt UIX funktioniert die Karte weiterhin, es fehlen aber das Styling und das Ausgrauen der Slider im Lokalbetrieb. Die Buttons graut button-card selbst aus, das funktioniert auch ohne UIX.
 
 ## Überwachung & Benachrichtigungen
 
@@ -80,10 +86,12 @@ Die Pumpe meldet Probleme selbst über zwei Statusbits in Register 00201 (Bit 10
 
 | Automation | Auslöser | Was sie meldet |
 |---|---|---|
-| `magna3_alarm_notification` | Reg 00201 Bit 10 → on | 🚨 Alarm mit Code (Reg 00205) und Klartext (z.B. „Trockenlauf", „Überstrom", „Sensorfehler"). Pumpe schaltet i.d.R. ab |
-| `magna3_warning_notification` | Reg 00201 Bit 11 → on | ⚠️ Warnung mit Code (Reg 00206). Pumpe läuft weiter, aber Aufmerksamkeit nötig (z.B. Sensor-Drift, Lager-Service fällig) |
+| `magna3_alarm_notification` | Reg 00201 Bit 10 → on, Codewechsel bei aktivem Alarm | 🚨 Alarm mit Code (Reg 00205, vor der Meldung frisch gelesen) und Klartext (z.B. „Trockenlauf", „Überstrom", „Sensorfehler"). Ein neuer Code aktualisiert dieselbe Meldung. Pumpe schaltet i.d.R. ab |
+| `magna3_warning_notification` | Reg 00201 Bit 11 → on, Codewechsel bei aktiver Warnung | ⚠️ Warnung mit Code (Reg 00206, frisch gelesen; ein neuer Code aktualisiert dieselbe Meldung). Pumpe läuft weiter, aber Aufmerksamkeit nötig (z.B. Sensor-Drift, Lager-Service fällig) |
 | `magna3_high_current` | Motorstrom > 5 A für 5 Min | ⚠️ Frühindikator für mechanische Probleme — bevor die Pumpe selbst eine Übertemperatur-Abschaltung meldet |
 | `magna3_forced_to_local_detected` | Reg 00201 Bit 12 → on | ⚠️ Pumpe wurde von außerhalb von HA in den Lokalmodus gezwungen (Bedienung am Pumpendisplay, Grundfos GO App, Digitaleingang) — HA-Steuerung ist solange nicht möglich |
+
+**Verbindungsausfall:** Ist die Pumpe nicht erreichbar (z. B. stromlos), sind auch die abgeleiteten Sensoren (Statusbits, Klartexte, Energiekosten, Effizienz …) „nicht verfügbar“ statt „aus“, „Kein Alarm“ oder 0. Messregister, die den Grundfos-Wert 0xFFFF („nicht verfügbar“) liefern, werden ebenso behandelt. Ausnahme: „Durchfluss L/h“ zeigt dann 0, damit Verlaufskurven neben anderen Geräten durchgehend bleiben.
 
 **Wichtig:** Die Statusregister werden **alle 30 Sekunden** über Modbus gepollt, **unabhängig** davon, ob HA gerade die Pumpe steuert oder die Pumpe lokal läuft. Auch Alarme während rein lokaler Pumpenoperation erreichen also zuverlässig den HA-Notification-Drawer.
 
@@ -122,7 +130,7 @@ Die Pumpe meldet Probleme selbst über zwei Statusbits in Register 00201 (Bit 10
 | 00303 | Relative Leistung | % | 15s |
 | 00304 | Drehzahl | rpm | 15s |
 | 00305 | Frequenz | Hz | 15s |
-| 00308 | Sollwert (aktuell) | % | 30s |
+| 00308 | Sollwert (aktuell) | % | 15s |
 | 00309 | Motorstrom | A | 30s |
 | 00310 | DC-Link Spannung | V | 30s |
 | 00312-13 | Leistungsaufnahme | W | 15s |

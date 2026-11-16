@@ -257,14 +257,18 @@ cards:
         show_name: true
         show_icon: true
         color: "#44739E"
+        triggers_update:
+          - binary_sensor.magna3_remote_mode
         tap_action:
           action: perform-action
           perform_action: script.magna3_to_local_copy
         tooltip:
           content: >-
             Hands control back to the pump and stores the current setpoint,
-            control mode, and on/off state in the pump's EEPROM.
+            control mode, and operation mode in the pump's EEPROM. The pump is
+            switched on in the process (even if it was stopped via HA before).
             Use after changing settings via HA so they survive a power cycle.
+            Only available under HA control.
           placement: bottom
           arrow: true
         # Fixed border (vertical-stack-in-card otherwise removes it depending on load timing).
@@ -279,6 +283,8 @@ cards:
           card:
             - padding: 6px
             - height: 110px
+            - opacity: "[[[ return states['binary_sensor.magna3_remote_mode']?.state === 'on' ? '1' : '0.4' ]]]"
+            - pointer-events: "[[[ return states['binary_sensor.magna3_remote_mode']?.state === 'on' ? 'auto' : 'none' ]]]"
           grid:
             - grid-template-areas: '"i" "n"'
             - grid-template-columns: 1fr
@@ -608,7 +614,7 @@ cards:
         tooltip:
           content: >-
             Clears active pump alarms (rising-edge trigger on Reg 00101 bit 2).
-            Side effect: switches the pump into HA control.
+            Side effect: switches the pump into HA control and on.
             Use only after fixing the underlying fault.
           placement: bottom
           arrow: true

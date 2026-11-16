@@ -1,5 +1,32 @@
 # Changelog
 
+## v4.5 (2026-11-16)
+
+**Bug fix: "Save Settings" in local mode could store constant speed at 0 % in the EEPROM.** The button first switched to Remote without pre-loading the request registers. After a power cycle of the pump, 00102/00104 read 0, and exactly these values would have been saved (the same trap v4.3.4 guards Remote Start against). Now `magna3_to_local_copy` also calls `magna3_prepare_remote` first, and the button is greyed out in local mode like the sliders and control mode buttons.
+
+**Bug fix: preparing Remote could undo a change just made.** `magna3_prepare_remote` used the last read values and wrote them even when the pump was already in Remote (Stop, Reset Alarm). Changing the setpoint and pressing "Stop Pump" within ~2 s brought back the old value. Now the script reads status, control mode, operation mode and setpoint fresh; in Remote it writes nothing, in local mode it also copies the operation mode (reg 00204 → 00103) so a local min/max curve is kept on the switch. Values are checked for valid codes and 0–100 %.
+
+**Bug fix: a missing setpoint lower bound was treated as 0.** If only reg 00215 failed, "Setpoint (Meter)" showed a wrong value and `magna3_set_setpoint_m` would have written a wrong percentage. Now every input must be valid (0 ≤ min < max ≤ 100).
+
+**Bug fix: a second control mode click within 2 s was lost** (since v4.4.1, due to the re-read). `magna3_set_control_mode` now runs in `restart` mode; the last click wins. Only codes listed for reg 00102 are written; `magna3_set_setpoint_percent` only writes 0–100 %.
+
+**Improvement: sliders show the matching setpoint right after a control mode change.** The pump keeps a separate setpoint per control mode (measured: FlowAdapt 7.5 %, proportional pressure 22 %). `magna3_set_control_mode` therefore re-reads reg 00338 as well as reg 00203 2 s after writing; before, the sliders showed the previous mode's setpoint for up to 15 s.
+
+**Bug fix: the meter slider could stay stale.** "Update Both Sliders from Pump Value" now also triggers on changes of the meter setpoint sensor (e.g. when an input register returns later after a power cycle, or the range changes after a control mode change).
+
+**Changed: "unavailable" instead of fake values on connection loss.** So far, with the pump unreachable, the 11 status bit sensors showed "off", the alarm text "No alarm", energy cost and efficiency 0 (energy cost dropped from 37.20 € to 0 and back in the statistics, for example) and the pump clock 1970. Now all derived template sensors follow the availability of their sources. Exception: "Flow Rate L/h" keeps showing 0 so history graphs stay continuous. In addition, 24 measurement registers report the Grundfos value 0xFFFF ("not available") as unavailable via `nan_value` instead of e.g. 655.35 K. If you have automations on these sensors: account for `unavailable` instead of `off`/0.
+
+**Improvement: alarm and warning notifications with the current code.** Status bit and code are read separately, so the notification could contain the old code (often 0). Now the code is re-read before notifying, and a code change while the alarm is active updates the same notification (`notification_id`).
+
+Other:
+- "Save Settings" tooltip: stores the operation mode instead of the "on/off state" and always switches the pump on (a stored "Off" would leave the heating circuit pump standing). "Reset Alarm" tooltip and notification: switches the pump on.
+- README: replaced the "line 44" install hint, 00308 is polled every 15 s, install only one language version, pump-specific values (gauges, meter slider, 5 A), behaviour on connection loss, UIX note made precise (buttons grey out without UIX too).
+- Entity lists: replaced the obsolete "Modbus Watchdog" with "Pump forced to local", added the warning automation.
+- Upgrade: replace the package, run `modbus.reload` and reload templates, scripts and automations (no restart needed); paste the card again.
+- Affects both YAMLs and both cards.
+
+**Note:** With the latest releases, the whole UX of the interface in Home Assistant **should be a lot smoother now**. Changes are reflected within a few seconds in all buttons and displays and don't need between 10 to 30 seconds anymore as they did before. Also potential errors creeping into the settings, which happened before, should now be a thing of the past. If you didn't like the previous look & feel, give this version another try, it's a huge improvement.
+
 ## v4.4.1 (2026-11-16)
 
 **Improvement: gauges and sliders follow a setpoint change within a few seconds.** Before, the gauges switched after 0–15 s (reg 00338 is polled every 15 s) and the sliders only 20 s after the last move (quiet time from v4.3.5, needed because pump values could be up to 15 s old). Now "Update Both Sliders from Pump Value" re-reads reg 00338 via `homeassistant.update_entity` 2 s after every slider move; the quiet time drops to 4 s. Measured before: gauges +3 to +11 s, % slider +20 to +21 s.
