@@ -1,7 +1,7 @@
 # ==============================================================================
 # GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration
 # ==============================================================================
-# Version:       v4.4 (2026-11-16)
+# Version:       v4.4.1 (2026-11-16)
 # CIM 500 Modbus TCP Configuration
 # Documentation: Grundfos 98367081 05.2025
 # Repo:          https://github.com/TRON4R/ha-grundfos-magna3-modbus
@@ -1214,6 +1214,11 @@ script:
             {% else %}
               {{ states('input_number.magna3_control_mode') | int }}
             {% endif %}
+      # Re-read the active control mode right away (otherwise up to 30 s) so the dashboard switches at once
+      - delay: 2
+      - action: homeassistant.update_entity
+        target:
+          entity_id: sensor.magna3_control_mode_code
   
   # Pre-load the bus context before the pump switches to Remote (internal,
   # called by Remote Start, Remote Stop and Reset Alarm).
@@ -1641,13 +1646,13 @@ automation:
             data:
               value: "{{ states('sensor.magna3_actual_setpoint_m') | float(0) }}"
 
-  # Rule: 20 s after the last slider move, both sliders show the pump value.
+  # Rule: 4 s after the last slider move, both sliders show the pump value.
   # Triggers: new pump report, local/remote switch and slider moves from elsewhere.
-  # - The pump is only polled every 15 s, so its value lags up to 15 s behind. While a slider was moved
-  #   within the last 20 s (user still adjusting), it is not overwritten; otherwise it would jump back
-  #   to a stale intermediate value.
+  # - The pump is only polled every 15 s. After a slider move, reg 00338 is therefore re-read 2 s later
+  #   (gauges switch at once). While a slider was moved within the last 4 s (user still adjusting), it is
+  #   not overwritten; otherwise it used to jump back to a stale intermediate value.
   # - In local mode a slider has no effect (the pump ignores reg 00104, Remote Start overwrites it).
-  #   If it is moved anyway, it shows the pump value again after 20 s.
+  #   If it is moved anyway, it shows the pump value again after 4 s.
   # - The automation's own slider changes (same context as its last run) do not restart it.
   - id: magna3_sync_both_sliders_from_pump
     alias: "MAGNA3: Update Both Sliders from Pump Value"
@@ -1672,13 +1677,22 @@ automation:
                   or trigger.to_state.context.id != this.context.id) }}
     action:
       - delay: 2
+      # After a slider move, re-read the pump value right away instead of waiting up to 15 s.
+      # If it changes, the automation restarts via the "pump" trigger.
+      - if:
+          - condition: trigger
+            id: slider
+        then:
+          - action: homeassistant.update_entity
+            target:
+              entity_id: sensor.magna3_user_setpoint
       - repeat:
           while:
             - condition: template
               value_template: >
                 {{ [states.input_number.magna3_setpoint_percent.last_changed,
                     states.input_number.magna3_setpoint_m.last_changed] | max
-                   > now() - timedelta(seconds=20) }}
+                   > now() - timedelta(seconds=4) }}
           sequence:
             - delay: 1
       - condition: not

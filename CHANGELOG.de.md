@@ -1,5 +1,14 @@
 # Changelog
 
+## v4.4.1 (2026-11-16)
+
+**Verbesserung: Diagramme und Slider folgen einer Sollwert-Änderung nach wenigen Sekunden.** Bisher sprangen die Diagramme nach 0–15 s um (Reg 00338 wird alle 15 s gelesen) und die Slider erst 20 s nach der letzten Bewegung (Ruhezeit aus v4.3.5, nötig wegen der bis zu 15 s alten Pumpenwerte). Jetzt liest „Beide Slider aus Pumpenwert aktualisieren“ 2 s nach jeder Slider-Bewegung Reg 00338 per `homeassistant.update_entity` nach; die Ruhezeit sinkt auf 4 s. Gemessen vorher: Diagramme +3 bis +11 s, %-Slider +20 bis +21 s.
+
+**Verbesserung: Regelungsart sofort sichtbar.** `magna3_set_regelungsart` liest 2 s nach dem Schreiben Reg 00203 nach; das Badge im Kartenkopf schaltet damit nach etwa 2 s statt nach bis zu 30 s um.
+
+Sonstiges:
+- Betrifft beide YAMLs, die Karten sind unverändert.
+
 ## v4.4 (2026-11-16)
 
 **Geänderte Voraussetzung: UIX statt card-mod.** Die Dashboard-Karte nutzt `uix:` statt `card_mod:` (alle 11 Blöcke). card-mod wird seit Februar 2026 nicht mehr weiterentwickelt. Mit card-mod statt [UIX](https://github.com/Lint-Free-Technology/uix) funktioniert die Karte weiter, es fehlen aber Styling und das Ausgrauen (siehe unten). Die Paket-YAML ist davon nicht betroffen.

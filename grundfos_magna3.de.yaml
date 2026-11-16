@@ -1,7 +1,7 @@
 # ==============================================================================
 # GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration
 # ==============================================================================
-# Version:       v4.4 (2026-11-16)
+# Version:       v4.4.1 (2026-11-16)
 # CIM 500 Modbus TCP Konfiguration
 # Dokumentation: Grundfos 98367081 05.2025
 # Repo:          https://github.com/TRON4R/ha-grundfos-magna3-modbus
@@ -1214,6 +1214,11 @@ script:
             {% else %}
               {{ states('input_number.magna3_regelungsart') | int }}
             {% endif %}
+      # Aktive Regelungsart sofort nachlesen (sonst bis zu 30 s), damit das Dashboard gleich umschaltet
+      - delay: 2
+      - action: homeassistant.update_entity
+        target:
+          entity_id: sensor.magna3_regelungsart_code
   
   # Bus-Kontext vorbelegen, bevor die Pumpe nach Remote wechselt (intern, von
   # Remote Start, Remote Stop und Alarm-Reset aufgerufen).
@@ -1641,13 +1646,14 @@ automation:
             data:
               value: "{{ states('sensor.magna3_sollwert_meter') | float(0) }}"
 
-  # Regel: 20 s nach der letzten Slider-Bewegung zeigen beide Slider den Pumpenwert.
+  # Regel: 4 s nach der letzten Slider-Bewegung zeigen beide Slider den Pumpenwert.
   # Ausloeser: neue Pumpen-Rueckmeldung, Wechsel Lokal/Remote und Slider-Bewegungen von aussen.
-  # - Die Pumpe wird nur alle 15 s gelesen, ihr Wert hinkt also bis zu 15 s hinterher. Solange ein Slider
-  #   in den letzten 20 s bewegt wurde (Nutzer stellt noch), wird er nicht ueberschrieben, sonst springt
-  #   er auf einen veralteten Zwischenwert zurueck.
+  # - Die Pumpe wird nur alle 15 s gelesen. Nach einer Slider-Bewegung wird Reg 00338 deshalb 2 s spaeter
+  #   sofort nachgelesen (Diagramme springen gleich um). Solange ein Slider in den letzten 4 s bewegt
+  #   wurde (Nutzer stellt noch), wird er nicht ueberschrieben, sonst sprang er auf einen veralteten
+  #   Zwischenwert zurueck.
   # - Im Lokalbetrieb wirkt ein Slider nicht (die Pumpe ignoriert Reg 00104, Remote Start ueberschreibt
-  #   es). Wird er trotzdem bewegt, steht er nach 20 s wieder auf dem Pumpenwert.
+  #   es). Wird er trotzdem bewegt, steht er nach 4 s wieder auf dem Pumpenwert.
   # - Eigene Slider-Aenderungen (gleicher Kontext wie der letzte Lauf) loesen keinen Neustart aus.
   - id: magna3_sync_both_sliders_from_pump
     alias: "MAGNA3: Beide Slider aus Pumpenwert aktualisieren"
@@ -1672,13 +1678,22 @@ automation:
                   or trigger.to_state.context.id != this.context.id) }}
     action:
       - delay: 2
+      # Nach einer Slider-Bewegung den Pumpenwert sofort nachlesen statt bis zu 15 s zu warten.
+      # Aendert er sich, startet die Automation ueber den Ausloeser "pumpe" neu.
+      - if:
+          - condition: trigger
+            id: slider
+        then:
+          - action: homeassistant.update_entity
+            target:
+              entity_id: sensor.magna3_sollwert_benutzer
       - repeat:
           while:
             - condition: template
               value_template: >
                 {{ [states.input_number.magna3_sollwert_prozent.last_changed,
                     states.input_number.magna3_sollwert_meter.last_changed] | max
-                   > now() - timedelta(seconds=20) }}
+                   > now() - timedelta(seconds=4) }}
           sequence:
             - delay: 1
       - condition: not

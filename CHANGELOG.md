@@ -1,5 +1,14 @@
 # Changelog
 
+## v4.4.1 (2026-11-16)
+
+**Improvement: gauges and sliders follow a setpoint change within a few seconds.** Before, the gauges switched after 0–15 s (reg 00338 is polled every 15 s) and the sliders only 20 s after the last move (quiet time from v4.3.5, needed because pump values could be up to 15 s old). Now "Update Both Sliders from Pump Value" re-reads reg 00338 via `homeassistant.update_entity` 2 s after every slider move; the quiet time drops to 4 s. Measured before: gauges +3 to +11 s, % slider +20 to +21 s.
+
+**Improvement: control mode visible right away.** `magna3_set_control_mode` re-reads reg 00203 2 s after writing; the badge in the card header now switches after about 2 s instead of up to 30 s.
+
+Other:
+- Affects both YAMLs; the cards are unchanged.
+
 ## v4.4 (2026-11-16)
 
 **Changed requirement: UIX instead of card-mod.** The dashboard card uses `uix:` instead of `card_mod:` (all 11 blocks). card-mod has not been developed further since February 2026. With card-mod instead of [UIX](https://github.com/Lint-Free-Technology/uix) the card still works, but the styling and the greying out (see below) are missing. The package YAML is not affected.
