@@ -1,7 +1,7 @@
 # ==============================================================================
 # GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration
 # ==============================================================================
-# Version:       v4.5.3 (2026-11-17)
+# Version:       v4.6 (2026-11-17)
 # CIM 500 Modbus TCP Configuration
 # Documentation: Grundfos 98367081 05.2025
 # Repo:          https://github.com/TRON4R/ha-grundfos-magna3-modbus
@@ -1443,11 +1443,15 @@ script:
           value: 0  # Local(0)
       # Re-read status right away (otherwise up to 30 s) so the dashboard switches at once
       - delay: 2
+      # Also control mode and setpoint: the pump returns to its stored values, so the
+      # highlight and sliders should not show the remote values for up to 30 s
       - action: homeassistant.update_entity
         target:
           entity_id:
             - sensor.magna3_status_bits_raw
             - sensor.magna3_control_source_code
+            - sensor.magna3_control_mode_code
+            - sensor.magna3_user_setpoint
 
   # Switch to local AND copy current bus setpoint into pump EEPROM.
   # Mechanism per Grundfos doc 98367081 (reg 00101 bit 4 "CopyToLocal"):

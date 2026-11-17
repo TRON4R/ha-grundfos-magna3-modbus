@@ -1,5 +1,20 @@
 # Changelog
 
+## v4.6 (2026-11-17)
+
+**New: active control mode highlighted.** The button of the control mode the pump reports (reg 00203) gets a light blue tinted background and a blue frame, in local mode too (faded then). It shows the pump's feedback, not the click: about 2–3 s after a click, up to 30 s after a change at the pump display or via Grundfos GO. If the pump runs another control mode (e.g. constant speed), no button is highlighted. Measured feedback codes: proportional pressure 6, constant pressure 4, AutoAdapt 128, FlowAdapt 129.
+
+**Improvement: "End HA Control" also re-reads control mode and setpoint.** The highlight and sliders show the values the pump takes back from its memory after about 2 s (before: up to 30 s).
+
+Other:
+- "Save Settings & End HA Control": new tooltip wording ("Transfers the current settings … permanently to the pump …") and 4 instead of 6 px padding (the German label fits on two lines again).
+- German card: soft hyphens in „Proportionaldruck“ and „Konstantdruck“ so they wrap instead of being cut off on a phone („Konstantdruck“ only on very narrow displays, below about 310 px).
+- README: note on the highlight in the "Operation" paragraph.
+- Upgrade: replace the package, reload scripts, paste the card again. Coming from v4.5.2 or older, also reload automations; from v4.5 or older also run `modbus.reload`.
+- Affects both YAMLs and both cards.
+
+**Note:** With the latest releases, the whole UX of the interface in Home Assistant **should be a lot smoother now**. Changes are reflected within a few seconds in all buttons and displays and don't need between 10 to 30 seconds anymore as they did before. Also potential errors creeping into the settings, which happened before, should now be a thing of the past. If you didn't like the previous look & feel, give this version another try, it's a huge improvement.
+
 ## v4.5.3 (2026-11-17)
 
 **Bug fix: quickly setting a setpoint back was lost.** Example: from 3.5 m to 4 m and right back to 3.5 m. The pump stayed at 4 m and the slider jumped to 4 m a few seconds later. Cause: a value was only written when the slider differed from the reported pump value, which can still be up to ~2 s old after a write (up to 15 s before v4.4.1). Now inputs by a user (dashboard, app, API) are always written. Only automatic slider changes, e.g. by "Update Both Sliders from Pump Value", are still compared with the pump value so no echo write happens. An input equal to the displayed value is therefore written again; with the meter slider the percent value may change by rounding (≤ 0.05 %).

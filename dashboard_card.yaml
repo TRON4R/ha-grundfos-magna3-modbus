@@ -264,11 +264,11 @@ cards:
           perform_action: script.magna3_to_local_copy
         tooltip:
           content: >-
-            Hands control back to the pump and stores the current setpoint,
-            control mode, and operation mode in the pump's EEPROM. The pump is
-            switched on in the process (even if it was stopped via HA before).
-            Use after changing settings via HA so they survive a power cycle.
-            Only available under HA control.
+            Transfers the current settings (control mode, setpoint, operation
+            mode) permanently to the pump and hands control back to the pump
+            display. The pump is switched on in the process (even if it was
+            stopped via HA before). Use after changing settings via HA so they
+            survive a power cycle. Only available under HA control.
           placement: bottom
           arrow: true
         # Fixed border (vertical-stack-in-card otherwise removes it depending on load timing).
@@ -281,7 +281,8 @@ cards:
           }
         styles:
           card:
-            - padding: 6px
+            # 4 instead of 6 px: more room for the label on narrow buttons
+            - padding: 4px
             - height: 110px
             - opacity: "[[[ return states['binary_sensor.magna3_remote_mode']?.state === 'on' ? '1' : '0.4' ]]]"
             - pointer-events: "[[[ return states['binary_sensor.magna3_remote_mode']?.state === 'on' ? 'auto' : 'none' ]]]"
@@ -407,6 +408,7 @@ cards:
         color: "#44739E"
         triggers_update:
           - binary_sensor.magna3_remote_mode
+          - sensor.magna3_control_mode_code
         tap_action:
           action: perform-action
           perform_action: script.magna3_enable_proportional
@@ -425,6 +427,7 @@ cards:
             #icon { width: 28px !important; height: 28px !important; --mdc-icon-size: 28px !important; }
             #name { font-size: 12px !important; }
           }
+        # Highlight the active control mode as reported by the pump (reg 00203): tinted background and frame (no bold label: too wide on a phone)
         styles:
           card:
             - padding: 6px
@@ -432,6 +435,8 @@ cards:
             - margin-top: 8px
             - opacity: "[[[ return states['binary_sensor.magna3_remote_mode']?.state === 'on' ? '1' : '0.4' ]]]"
             - pointer-events: "[[[ return states['binary_sensor.magna3_remote_mode']?.state === 'on' ? 'auto' : 'none' ]]]"
+            - background-color: "[[[ return states['sensor.magna3_control_mode_code']?.state === '6' ? 'rgba(68, 115, 158, 0.2)' : 'var(--ha-card-background, var(--card-background-color, white))' ]]]"
+            - box-shadow: "[[[ return states['sensor.magna3_control_mode_code']?.state === '6' ? 'inset 0 0 0 2px #44739E' : 'var(--ha-card-box-shadow, none)' ]]]"
           grid:
             - grid-template-areas: '"i" "n"'
             - grid-template-columns: 1fr
@@ -458,6 +463,7 @@ cards:
         color: "#44739E"
         triggers_update:
           - binary_sensor.magna3_remote_mode
+          - sensor.magna3_control_mode_code
         tap_action:
           action: perform-action
           perform_action: script.magna3_enable_constant_pressure
@@ -475,6 +481,7 @@ cards:
             #icon { width: 28px !important; height: 28px !important; --mdc-icon-size: 28px !important; }
             #name { font-size: 12px !important; }
           }
+        # Highlight the active control mode as reported by the pump (reg 00203): tinted background and frame (no bold label: too wide on a phone)
         styles:
           card:
             - padding: 6px
@@ -482,6 +489,8 @@ cards:
             - margin-top: 8px
             - opacity: "[[[ return states['binary_sensor.magna3_remote_mode']?.state === 'on' ? '1' : '0.4' ]]]"
             - pointer-events: "[[[ return states['binary_sensor.magna3_remote_mode']?.state === 'on' ? 'auto' : 'none' ]]]"
+            - background-color: "[[[ return states['sensor.magna3_control_mode_code']?.state === '4' ? 'rgba(68, 115, 158, 0.2)' : 'var(--ha-card-background, var(--card-background-color, white))' ]]]"
+            - box-shadow: "[[[ return states['sensor.magna3_control_mode_code']?.state === '4' ? 'inset 0 0 0 2px #44739E' : 'var(--ha-card-box-shadow, none)' ]]]"
           grid:
             - grid-template-areas: '"i" "n"'
             - grid-template-columns: 1fr
@@ -510,6 +519,7 @@ cards:
         color: "#44739E"
         triggers_update:
           - binary_sensor.magna3_remote_mode
+          - sensor.magna3_control_mode_code
         tap_action:
           action: perform-action
           perform_action: script.magna3_enable_autoadapt
@@ -527,6 +537,7 @@ cards:
             #icon { width: 28px !important; height: 28px !important; --mdc-icon-size: 28px !important; }
             #name { font-size: 12px !important; }
           }
+        # Highlight the active control mode as reported by the pump (reg 00203): tinted background and frame (no bold label: too wide on a phone)
         styles:
           card:
             - padding: 6px
@@ -534,6 +545,8 @@ cards:
             - margin-top: 8px
             - opacity: "[[[ return states['binary_sensor.magna3_remote_mode']?.state === 'on' ? '1' : '0.4' ]]]"
             - pointer-events: "[[[ return states['binary_sensor.magna3_remote_mode']?.state === 'on' ? 'auto' : 'none' ]]]"
+            - background-color: "[[[ return states['sensor.magna3_control_mode_code']?.state === '128' ? 'rgba(68, 115, 158, 0.2)' : 'var(--ha-card-background, var(--card-background-color, white))' ]]]"
+            - box-shadow: "[[[ return states['sensor.magna3_control_mode_code']?.state === '128' ? 'inset 0 0 0 2px #44739E' : 'var(--ha-card-box-shadow, none)' ]]]"
           grid:
             - grid-template-areas: '"i" "n"'
             - grid-template-columns: 1fr
@@ -560,6 +573,7 @@ cards:
         color: "#44739E"
         triggers_update:
           - binary_sensor.magna3_remote_mode
+          - sensor.magna3_control_mode_code
         tap_action:
           action: perform-action
           perform_action: script.magna3_enable_flowadapt
@@ -577,6 +591,7 @@ cards:
             #icon { width: 28px !important; height: 28px !important; --mdc-icon-size: 28px !important; }
             #name { font-size: 12px !important; }
           }
+        # Highlight the active control mode as reported by the pump (reg 00203): tinted background and frame (no bold label: too wide on a phone)
         styles:
           card:
             - padding: 6px
@@ -584,6 +599,8 @@ cards:
             - margin-top: 8px
             - opacity: "[[[ return states['binary_sensor.magna3_remote_mode']?.state === 'on' ? '1' : '0.4' ]]]"
             - pointer-events: "[[[ return states['binary_sensor.magna3_remote_mode']?.state === 'on' ? 'auto' : 'none' ]]]"
+            - background-color: "[[[ return states['sensor.magna3_control_mode_code']?.state === '129' ? 'rgba(68, 115, 158, 0.2)' : 'var(--ha-card-background, var(--card-background-color, white))' ]]]"
+            - box-shadow: "[[[ return states['sensor.magna3_control_mode_code']?.state === '129' ? 'inset 0 0 0 2px #44739E' : 'var(--ha-card-box-shadow, none)' ]]]"
           grid:
             - grid-template-areas: '"i" "n"'
             - grid-template-columns: 1fr

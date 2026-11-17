@@ -1,5 +1,20 @@
 # Changelog
 
+## v4.6 (2026-11-17)
+
+**Neu: Aktive Regelungsart hervorgehoben.** Der Button der Regelungsart, die die Pumpe meldet (Reg 00203), hat einen leicht blau getönten Hintergrund und einen blauen Rahmen, auch im Lokalbetrieb (dann blass). Angezeigt wird die Rückmeldung der Pumpe, nicht der Klick: nach einem Klick nach etwa 2–3 s, bei einem Wechsel am Pumpendisplay oder per Grundfos GO nach bis zu 30 s. Läuft die Pumpe in einer anderen Regelungsart (z. B. konstante Drehzahl), ist kein Button hervorgehoben. Gemessene Rückmeldungen: Proportionaldruck 6, Konstantdruck 4, AutoAdapt 128, FlowAdapt 129.
+
+**Verbesserung: „HA-Steuerung beenden“ liest auch Regelungsart und Sollwert nach.** Hervorhebung und Slider zeigen nach etwa 2 s die Werte, die die Pumpe wieder aus ihrem Speicher übernimmt (vorher bis zu 30 s).
+
+Sonstiges:
+- „Einstellungen sichern & HA-Steuerung beenden“: 4 statt 6 px Innenabstand, damit „Einstellungen sichern &“ bei 1920 px Fensterbreite wieder in eine Zeile passt; Tooltip neu formuliert („Überträgt die aktuellen Einstellungen … dauerhaft in die Pumpe …“).
+- „Proportionaldruck“ und „Konstantdruck“ mit weichem Trennzeichen: am Handy „Proportional-“ / „druck“ statt abgeschnitten, „Konstant-“ / „druck“ bei sehr schmalen Displays (unter etwa 310 px).
+- README: Hinweis auf die Hervorhebung im Absatz „Bedienung“.
+- Upgrade: Paket ersetzen, Skripte neu laden, Karte neu einfügen. Wer von v4.5.2 oder älter kommt, zusätzlich Automationen neu laden; von v4.5 oder älter auch `modbus.reload`.
+- Betrifft beide YAMLs und beide Karten.
+
+**Hinweis:** Mit den letzten Releases sollte sich die ganze Bedienung in Home Assistant **deutlich flüssiger anfühlen**. Änderungen erscheinen innerhalb weniger Sekunden in allen Buttons und Anzeigen und brauchen nicht mehr 10 bis 30 Sekunden wie zuvor. Auch die Fehler, die sich früher in die Einstellungen einschleichen konnten, sollten der Vergangenheit angehören. Wem das bisherige Look & Feel nicht gefallen hat, sollte dieser Version noch eine Chance geben – es ist eine deutliche Verbesserung.
+
 ## v4.5.3 (2026-11-17)
 
 **Bugfix: Schnelles Zurückstellen eines Sollwerts ging verloren.** Beispiel: von 3,5 m auf 4 m und gleich wieder auf 3,5 m. Die Pumpe blieb auf 4 m, und der Slider sprang nach ein paar Sekunden auf 4 m. Ursache: Geschrieben wurde nur, wenn der Slider vom gemeldeten Pumpenwert abweicht; der ist nach einem Schreiben aber noch bis zu ~2 s alt (vor v4.4.1 bis zu 15 s). Jetzt werden Eingaben eines Nutzers (Dashboard, App, API) immer geschrieben. Nur automatische Slider-Änderungen, etwa durch „Beide Slider aus Pumpenwert aktualisieren“, werden weiter mit dem Pumpenwert verglichen, damit kein Echo-Schreibvorgang entsteht. Eine Eingabe, die dem angezeigten Wert entspricht, wird dadurch erneut geschrieben; beim Meter-Slider kann sich der Prozentwert dabei um Rundungsreste (≤ 0,05 %) ändern.
@@ -25,8 +40,6 @@ Sonstiges:
 - Upgrade: Paket ersetzen, Automationen und Skripte neu laden (kein Neustart nötig). Von v4.5.1 aus kein `modbus.reload` nötig; wer von v4.5 oder älter kommt, braucht ihn für den `uint16`-Fix aus v4.5.1. Die Karte ist unverändert.
 - Betrifft beide YAMLs.
 
-**Hinweis:** Mit den letzten Releases sollte sich die ganze Bedienung in Home Assistant **deutlich flüssiger anfühlen**. Änderungen erscheinen innerhalb weniger Sekunden in allen Buttons und Anzeigen und brauchen nicht mehr 10 bis 30 Sekunden wie zuvor. Auch die Fehler, die sich früher in die Einstellungen einschleichen konnten, sollten der Vergangenheit angehören. Wem das bisherige Look & Feel nicht gefallen hat, sollte dieser Version noch eine Chance geben – es ist eine deutliche Verbesserung.
-
 ## v4.5.1 (2026-11-17)
 
 **Bugfix: Bei Mindestdrehzahl ließ sich die Pumpe nicht mehr bedienen** (seit v4.5). Das Statusregister 00201 hatte keinen Datentyp; Home Assistant liest es dann als vorzeichenbehaftete Zahl (`int16`). Ist Bit 15 „AtMinSpeed“ gesetzt, wird der Wert negativ (gemessen: −32058 bzw. −31804, zusammen rund 48 h in 10 Tagen). Die neue Prüfung `status >= 0` in `magna3_prepare_remote` hielt das für „Pumpe nicht erreichbar“: Start, Stop, Alarm-Reset und „Einstellungen sichern“ brachen mit „Wechsel nach Remote abgebrochen“ ab (ohne zu schreiben). Jetzt `data_type: uint16`. Die Statusbit-Sensoren waren nicht betroffen.
@@ -42,8 +55,6 @@ Sonstiges:
 - Kommentar zu „Einstellungen sichern“: Eine gesicherte gestoppte Pumpe ließe sich noch am Pumpendisplay oder per Grundfos GO starten, nur nicht durch die Wärmepumpe.
 - Upgrade: Paket ersetzen, Automationen und Skripte neu laden und `modbus.reload` ausführen (kein Neustart nötig). Die Karte ist unverändert.
 - Betrifft beide YAMLs.
-
-**Hinweis:** Mit den letzten Releases sollte sich die ganze Bedienung in Home Assistant **deutlich flüssiger anfühlen**. Änderungen erscheinen innerhalb weniger Sekunden in allen Buttons und Anzeigen und brauchen nicht mehr 10 bis 30 Sekunden wie zuvor. Auch die Fehler, die sich früher in die Einstellungen einschleichen konnten, sollten der Vergangenheit angehören. Wem das bisherige Look & Feel nicht gefallen hat, sollte dieser Version noch eine Chance geben – es ist eine deutliche Verbesserung.
 
 ## v4.5 (2026-11-16)
 
@@ -80,8 +91,6 @@ Sonstiges:
 
 Sonstiges:
 - Betrifft beide YAMLs, die Karten sind unverändert.
-
-**Hinweis:** Mit den letzten Änderungen sollte sich die ganze Bedienung in Home Assistant deutlich flüssiger anfühlen. Änderungen erscheinen innerhalb weniger Sekunden in allen Buttons und Anzeigen und brauchen nicht mehr 10 bis 30 Sekunden wie zuvor. Auch die Fehler, die sich früher in die Einstellungen einschleichen konnten, sollten der Vergangenheit angehören. Wem das bisherige Look & Feel nicht gefallen hat, sollte dieser Version noch eine Chance geben – es ist eine deutliche Verbesserung.
 
 ## v4.4 (2026-11-16)
 

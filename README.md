@@ -60,7 +60,7 @@ The file `dashboard_card.yaml` contains a ready-to-use Lovelace card with gauges
 
 **Usage:** Paste the contents of `dashboard_card.yaml` as a manual card (YAML) in the dashboard editor.
 
-**Operation:** The setpoint sliders and the control mode buttons (Proportional Pressure, Constant Pressure, AutoAdapt, FlowAdapt) only take effect while HA controls the pump (Remote). In local mode the pump ignores these requests, so they are greyed out then. First "Start HA Control", then change setpoint or control mode; to store it permanently use "Save Settings & End HA Control". After start or end the display switches after about 2 s; if control changes some other way (pump display, Grundfos GO), after 30 s at most.
+**Operation:** The setpoint sliders and the control mode buttons (Proportional Pressure, Constant Pressure, AutoAdapt, FlowAdapt) only take effect while HA controls the pump (Remote). In local mode the pump ignores these requests, so they are greyed out then. First "Start HA Control", then change setpoint or control mode; to store it permanently use "Save Settings & End HA Control". After start or end the display switches after about 2 s; if control changes some other way (pump display, Grundfos GO), after 30 s at most. The button of the control mode the pump currently reports is tinted blue with a frame (in local mode too); if it runs another control mode, none is highlighted.
 
 "Save Settings & End HA Control" is only available under HA control and always switches the pump on, even if it was stopped via HA before: a stored "Off" would leave the heating circuit pump standing after control ends. "Reset Alarm" takes over control and switches the pump on as well.
 
