@@ -25,8 +25,6 @@ Other:
 - Upgrade: replace the package, reload automations and scripts (no restart needed). From v4.5.1 no `modbus.reload` is needed; coming from v4.5 or older you need it for the `uint16` fix from v4.5.1. The card is unchanged.
 - Affects both YAMLs.
 
-**Note:** With the latest releases, the whole UX of the interface in Home Assistant **should be a lot smoother now**. Changes are reflected within a few seconds in all buttons and displays and don't need between 10 to 30 seconds anymore as they did before. Also potential errors creeping into the settings, which happened before, should now be a thing of the past. If you didn't like the previous look & feel, give this version another try, it's a huge improvement.
-
 ## v4.5.1 (2026-11-17)
 
 **Bug fix: the pump could not be operated at minimum speed** (since v4.5). Status register 00201 had no data type, so Home Assistant read it as a signed number (`int16`). With bit 15 "AtMinSpeed" set the value turns negative (measured: −32058 and −31804, about 48 h in 10 days). The new check `status >= 0` in `magna3_prepare_remote` took that for "pump unreachable": Start, Stop, Reset Alarm and "Save Settings" aborted with "Switch to Remote aborted" (without writing). Now `data_type: uint16`. The status bit sensors were not affected.
@@ -42,8 +40,6 @@ Other:
 - Comment on "Save Settings": a stored stopped pump could still be started at the pump display or via Grundfos GO, just not by the heat pump.
 - Upgrade: replace the package, reload automations and scripts and run `modbus.reload` (no restart needed). The card is unchanged.
 - Affects both YAMLs.
-
-**Note:** With the latest releases, the whole UX of the interface in Home Assistant **should be a lot smoother now**. Changes are reflected within a few seconds in all buttons and displays and don't need between 10 to 30 seconds anymore as they did before. Also potential errors creeping into the settings, which happened before, should now be a thing of the past. If you didn't like the previous look & feel, give this version another try, it's a huge improvement.
 
 ## v4.5 (2026-11-16)
 
@@ -80,8 +76,6 @@ Other:
 
 Other:
 - Affects both YAMLs; the cards are unchanged.
-
-**Note:** With the latest releases, the whole UX of the interface in Home Assistant **should be a lot smoother now**. Changes are reflected within a few seconds in all buttons and displays and don't need between 10 to 30 seconds anymore as they did before. Also potential errors creeping into the settings, which happened before, should now be a thing of the past. If you maybe didn't like the previous look & feel, give this version another try, it's a huge improvement.
 
 ## v4.4 (2026-11-16)
 
