@@ -1,7 +1,7 @@
 # ==============================================================================
 # GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration
 # ==============================================================================
-# Version:       v4.5.1 (2026-11-17)
+# Version:       v4.5.2 (2026-11-17)
 # CIM 500 Modbus TCP Konfiguration
 # Dokumentation: Grundfos 98367081 05.2025
 # Repo:          https://github.com/TRON4R/ha-grundfos-magna3-modbus
@@ -1213,9 +1213,12 @@ script:
   
   # Die Meter-Umrechnung braucht Einheit und Bereiche der aktiven Regelungsart. Diese
   # liest "Sensor-Konfiguration bei Regelungsart-Wechsel nachlesen" erst 5 s nach einem
-  # Wechsel nach. Bis 7 s nach dem Wechsel wird deshalb gewartet (Wunschwert vorher
-  # gemerkt), sonst rechnete das Skript mit dem Bereich der alten Regelungsart.
-  # restart: Eine neue Eingabe waehrend der Wartezeit ersetzt die alte.
+  # Wechsel nach. Waehrend ein Wechsel laeuft (vom Klick an, also schon vor dem Schreiben),
+  # die Bereiche nachgelesen werden oder der Wechsel keine 7 s her ist, wird gewartet
+  # (Wunschwert vorher gemerkt); sonst rechnete das Skript mit dem Bereich der alten
+  # Regelungsart. Nach 20 s ohne Freigabe wird nicht geschrieben.
+  # restart: Eine neue Eingabe waehrend der Wartezeit ersetzt die alte. Jede neue Slider-
+  # Eingabe (% oder m) bricht einen wartenden Auftrag ab (siehe "Sync Sollwert %/m").
   magna3_set_sollwert_meter:
     alias: "MAGNA3: Sollwert (m) setzen"
     mode: restart
@@ -1226,10 +1229,23 @@ script:
     sequence:
       - variables:
           m: "{{ meter | float if meter is defined else states('input_number.magna3_sollwert_meter') | float }}"
-      - delay:
-          milliseconds: >
-            {{ ([0, 7 - (now() - states.sensor.magna3_regelungsart_code.last_changed).total_seconds()]
-                | max * 1000) | int }}
+      # Warten, solange die Regelungsart gesetzt oder ihr Bereich nachgelesen wird (max. 20 s)
+      - repeat:
+          while:
+            - condition: template
+              value_template: >
+                {{ repeat.index <= 40
+                   and (is_state('script.magna3_set_regelungsart', 'on')
+                        or state_attr('automation.magna3_sensor_konfiguration_bei_regelungsart_wechsel_nachlesen', 'current') | int(0) > 0
+                        or now() - states.sensor.magna3_regelungsart_code.last_changed < timedelta(seconds=7)) }}
+          sequence:
+            - delay:
+                milliseconds: 500
+      # Nach 20 s immer noch nicht freigegeben: nicht schreiben
+      - condition: template
+        value_template: >
+          {{ not (is_state('script.magna3_set_regelungsart', 'on')
+                  or state_attr('automation.magna3_sensor_konfiguration_bei_regelungsart_wechsel_nachlesen', 'current') | int(0) > 0) }}
       - variables:
           s_max: "{{ states('sensor.magna3_sensor_maximum') | float(0) }}"
           r_min_pct: "{{ states('sensor.magna3_sollwertbereich_min') | float(-1) }}"
@@ -1311,8 +1327,9 @@ script:
   # Wert eine gerade gemachte Aenderung zuruecksetzen). Rueckgabe: {"ok": true/false}.
   magna3_prepare_remote:
     alias: "MAGNA3: Remote vorbereiten (intern)"
-    # queued: Zwei fast gleichzeitige Aufrufe (z. B. Start und Stop) laufen nacheinander,
-    # statt dass der zweite als "laeuft schon" verworfen wird
+    # queued: Zwei fast gleichzeitige Vorbereitungen (z. B. Start und Stop) laufen
+    # nacheinander, statt dass die zweite als "laeuft schon" verworfen wird. Das betrifft
+    # nur die Vorbereitung; die aufrufenden Steuerablaeufe laufen weiterhin unabhaengig.
     mode: queued
     sequence:
       # Frisch lesen statt der bis zu 30 s alten Werte
@@ -1512,6 +1529,8 @@ script:
       # ResetAlarm-Bit nur zuruecknehmen, wenn seither niemand anders Reg 00101 geschrieben
       # hat (Stop, Lokal, Sichern oder eine andere Automation). Sonst wuerde z. B. ein
       # Stop in diesen 2 s durch das Schreiben von 3 (Remote + On) wieder aufgehoben.
+      # Zwischen Lesen und Schreiben bleiben wenige Millisekunden: keine atomare Pruefung,
+      # verringert das Risiko aber deutlich.
       - action: homeassistant.update_entity
         target:
           entity_id: sensor.magna3_control_register_00101_raw
@@ -1759,33 +1778,41 @@ automation:
   # Automation "Beide Slider aus Pumpenwert aktualisieren" einen Slider auf den
   # Pumpenwert, entsteht so kein Echo-Schreibvorgang zurueck zur Pumpe. Ist der
   # Pumpenwert nicht verfuegbar, wird ebenfalls nicht geschrieben.
+  # Jede Slider-Eingabe bricht zuerst einen noch wartenden Meter-Auftrag ab (auch wenn sie
+  # dem Pumpenwert entspricht), erst danach wird geprueft, ob geschrieben werden muss.
+  # Sonst schriebe ein aelterer Meter-Auftrag spaeter ueber die neue Eingabe.
   - id: magna3_sync_setpoint_percent
     alias: "MAGNA3: Sync Sollwert %"
+    mode: restart
     trigger:
       - platform: state
         entity_id: input_number.magna3_sollwert_prozent
-    condition:
+    action:
+      - action: script.turn_off
+        target:
+          entity_id: script.magna3_set_sollwert_meter
       - condition: template
         value_template: >
           {% set pumpe = states('sensor.magna3_sollwert_benutzer') | float(none) %}
           {{ pumpe is not none
              and (trigger.to_state.state | float(0) - pumpe) | abs > 0.05 }}
-    action:
       - action: script.magna3_set_sollwert_prozent
 
   - id: magna3_sync_setpoint_meter
     alias: "MAGNA3: Sync Sollwert m"
-    mode: restart  # das Skript wartet ggf. bis 7 s; die letzte Eingabe gilt
+    mode: restart  # das Skript wartet ggf. nach einem Regelungsart-Wechsel; die letzte Eingabe gilt
     trigger:
       - platform: state
         entity_id: input_number.magna3_sollwert_meter
-    condition:
+    action:
+      - action: script.turn_off
+        target:
+          entity_id: script.magna3_set_sollwert_meter
       - condition: template
         value_template: >
           {% set pumpe = states('sensor.magna3_sollwert_meter') | float(none) %}
           {{ pumpe is not none
              and (trigger.to_state.state | float(0) - pumpe) | abs > 0.005 }}
-    action:
       - action: script.magna3_set_sollwert_meter
 
   # Nach jedem HA-Start: 30 Sekunden warten (bis Modbus-Daten da sind), dann werden beide Slider/Boxen auf die aktuellen Pumpenwerte gesetzt.

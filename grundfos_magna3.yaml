@@ -1,7 +1,7 @@
 # ==============================================================================
 # GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration
 # ==============================================================================
-# Version:       v4.5.1 (2026-11-17)
+# Version:       v4.5.2 (2026-11-17)
 # CIM 500 Modbus TCP Configuration
 # Documentation: Grundfos 98367081 05.2025
 # Repo:          https://github.com/TRON4R/ha-grundfos-magna3-modbus
@@ -1212,10 +1212,13 @@ script:
           value: "{{ (wert * 100) | round(0) | int }}"
   
   # The meter conversion needs the unit and ranges of the active control mode. "Refresh
-  # Sensor Config on Control Mode Change" only re-reads them 5 s after a change. So the
-  # script waits until 7 s after the change (the requested value is kept), otherwise it
-  # would convert with the previous control mode's range.
-  # restart: a new input during the wait replaces the old one.
+  # Sensor Config on Control Mode Change" only re-reads them 5 s after a change. While a
+  # change is in progress (from the click on, i.e. before the write), the ranges are being
+  # re-read or the change is less than 7 s ago, the script waits (requested value kept);
+  # otherwise it would convert with the previous control mode's range. If not released
+  # after 20 s, nothing is written.
+  # restart: a new input during the wait replaces the old one. Every new slider input
+  # (% or m) cancels a waiting job (see "Sync Setpoint %/m").
   magna3_set_setpoint_m:
     alias: "MAGNA3: Set Setpoint (m)"
     mode: restart
@@ -1226,10 +1229,23 @@ script:
     sequence:
       - variables:
           m: "{{ meter | float if meter is defined else states('input_number.magna3_setpoint_m') | float }}"
-      - delay:
-          milliseconds: >
-            {{ ([0, 7 - (now() - states.sensor.magna3_control_mode_code.last_changed).total_seconds()]
-                | max * 1000) | int }}
+      # Wait while the control mode is being set or its range re-read (max. 20 s)
+      - repeat:
+          while:
+            - condition: template
+              value_template: >
+                {{ repeat.index <= 40
+                   and (is_state('script.magna3_set_control_mode', 'on')
+                        or state_attr('automation.magna3_refresh_sensor_config_on_control_mode_change', 'current') | int(0) > 0
+                        or now() - states.sensor.magna3_control_mode_code.last_changed < timedelta(seconds=7)) }}
+          sequence:
+            - delay:
+                milliseconds: 500
+      # Still not released after 20 s: do not write
+      - condition: template
+        value_template: >
+          {{ not (is_state('script.magna3_set_control_mode', 'on')
+                  or state_attr('automation.magna3_refresh_sensor_config_on_control_mode_change', 'current') | int(0) > 0) }}
       - variables:
           s_max: "{{ states('sensor.magna3_feedback_sensor_max') | float(0) }}"
           r_min_pct: "{{ states('sensor.magna3_setpoint_range_min') | float(-1) }}"
@@ -1311,8 +1327,9 @@ script:
   # a change just made). Returns {"ok": true/false}.
   magna3_prepare_remote:
     alias: "MAGNA3: Prepare Remote (internal)"
-    # queued: two near-simultaneous calls (e.g. Start and Stop) run one after the other
-    # instead of the second being dropped as "already running"
+    # queued: two near-simultaneous preparations (e.g. Start and Stop) run one after the
+    # other instead of the second being dropped as "already running". This only covers the
+    # preparation; the calling control sequences still run independently.
     mode: queued
     sequence:
       # Read fresh instead of using values up to 30 s old
@@ -1510,6 +1527,8 @@ script:
       # Only clear the ResetAlarm bit if nobody else has written reg 00101 since (Stop,
       # Local, Save or another automation). Otherwise e.g. a Stop within these 2 s would
       # be undone by writing 3 (Remote + On).
+      # A few milliseconds remain between read and write: not an atomic check, but it
+      # reduces the risk considerably.
       - action: homeassistant.update_entity
         target:
           entity_id: sensor.magna3_control_register_00101_raw
@@ -1758,33 +1777,41 @@ automation:
   # "Update Both Sliders from Pump Value" sets a slider to the pump value, no echo
   # write back to the pump happens. Nothing is written while the pump value is
   # unavailable either.
+  # Every slider input first cancels a waiting meter job (even if it equals the pump value),
+  # only then it checks whether anything has to be written. Otherwise an older meter job
+  # would later overwrite the new input.
   - id: magna3_sync_setpoint_percent
     alias: "MAGNA3: Sync Setpoint %"
+    mode: restart
     trigger:
       - platform: state
         entity_id: input_number.magna3_setpoint_percent
-    condition:
+    action:
+      - action: script.turn_off
+        target:
+          entity_id: script.magna3_set_setpoint_m
       - condition: template
         value_template: >
           {% set pumpe = states('sensor.magna3_user_setpoint') | float(none) %}
           {{ pumpe is not none
              and (trigger.to_state.state | float(0) - pumpe) | abs > 0.05 }}
-    action:
       - action: script.magna3_set_setpoint_percent
 
   - id: magna3_sync_setpoint_meter
     alias: "MAGNA3: Sync Setpoint m"
-    mode: restart  # the script may wait up to 7 s; the last input wins
+    mode: restart  # the script may wait after a control mode change; the last input wins
     trigger:
       - platform: state
         entity_id: input_number.magna3_setpoint_m
-    condition:
+    action:
+      - action: script.turn_off
+        target:
+          entity_id: script.magna3_set_setpoint_m
       - condition: template
         value_template: >
           {% set pumpe = states('sensor.magna3_actual_setpoint_m') | float(none) %}
           {{ pumpe is not none
              and (trigger.to_state.state | float(0) - pumpe) | abs > 0.005 }}
-    action:
       - action: script.magna3_set_setpoint_m
 
   # After each HA start: wait 30s for Modbus data, then set both sliders to current pump values.

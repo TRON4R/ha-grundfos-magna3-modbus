@@ -1,16 +1,31 @@
 # Changelog
 
+## v4.5.2 (2026-11-17)
+
+Both bugs only concern the first seconds after a control mode change; otherwise a meter input is still written right away.
+
+**Bug fix: a meter input in the first ~2 s after a control mode click used the old range.** The wait from v4.5.1 counted from the moment HA read the new control mode (~2 s after the click); before that it was 0. Now `magna3_set_setpoint_m` waits while "Set Control Mode" is running (from the click on, i.e. before the write), the ranges are being re-read or the change is less than 7 s ago. If not released after 20 s, nothing is written.
+
+**Bug fix: setting the value back during the wait was ignored.** After a control mode change, going e.g. from 2 m to 3 m and right back to 2 m (= current pump value) still wrote 3 m: the "differs from the pump value" check was in the automation's condition, and Home Assistant only restarts a `restart` automation when its condition passes. Likewise a % value entered during the wait could later be overwritten by the waiting meter job. Now every slider input (% and m) first cancels a waiting meter job and only then checks whether anything has to be written.
+
+Other:
+- Comments and v4.5.1 changelog made precise: the re-read in Reset Alarm reduces the risk but is not an atomic check; `queued` only serializes the preparation, not the whole Start/Stop/Save sequences.
+- Upgrade: replace the package, reload automations and scripts (no restart, no `modbus.reload` needed). The card is unchanged.
+- Affects both YAMLs.
+
+**Note:** With the latest releases, the whole UX of the interface in Home Assistant **should be a lot smoother now**. Changes are reflected within a few seconds in all buttons and displays and don't need between 10 to 30 seconds anymore as they did before. Also potential errors creeping into the settings, which happened before, should now be a thing of the past. If you didn't like the previous look & feel, give this version another try, it's a huge improvement.
+
 ## v4.5.1 (2026-11-17)
 
 **Bug fix: the pump could not be operated at minimum speed** (since v4.5). Status register 00201 had no data type, so Home Assistant read it as a signed number (`int16`). With bit 15 "AtMinSpeed" set the value turns negative (measured: −32058 and −31804, about 48 h in 10 days). The new check `status >= 0` in `magna3_prepare_remote` took that for "pump unreachable": Start, Stop, Reset Alarm and "Save Settings" aborted with "Switch to Remote aborted" (without writing). Now `data_type: uint16`. The status bit sensors were not affected.
 
-**Bug fix: Reset Alarm could undo a Stop.** The reset writes 7 (Remote + On + Reset), waits 2 s and then always wrote 3 (Remote + On). A Stop within these 2 s was undone. Now the reset re-reads reg 00101 first and writes 3 only if its 7 is still there. This also protects against other automations writing reg 00101 directly.
+**Bug fix: Reset Alarm could undo a Stop.** The reset writes 7 (Remote + On + Reset), waits 2 s and then always wrote 3 (Remote + On). A Stop within these 2 s was undone. Now the reset re-reads reg 00101 first and writes 3 only if its 7 is still there. This also reduces the risk with other automations writing reg 00101 directly; it is not an atomic check (a few milliseconds remain between read and write).
 
 **Bug fix: a meter input right after a control mode change used the old range.** The pump has separate setpoint ranges per control mode (measured: 7.5 % = 2.49 m in the old, 1.5 m in the new range); they are re-read 5 s after the change. `magna3_set_setpoint_m` therefore waits until 7 s after a change, keeps the requested value and then converts with the new range. Afterwards it re-reads the pump value. The script and "Sync Setpoint m" run in `restart` mode (the last input wins); the slider sync waits while the script runs. Outside these 7 s nothing changes.
 
 Other:
 - Notifications: "Save Settings" now names the adopted control mode and the setpoint in % and m (read fresh from the pump, so it doubles as a check); Reset Alarm reports the actual state afterwards (HA/local control, switched on/stopped) instead of always "switched on".
-- `magna3_prepare_remote` in `queued` mode: two near-simultaneous clicks run one after the other instead of the second being dropped.
+- `magna3_prepare_remote` in `queued` mode: with two near-simultaneous clicks the second preparation is no longer dropped. This only covers the preparation; the Start/Stop/Save sequences themselves still run independently.
 - README: the phone notification example now shows only the additional `notify` action (the full automation would have overwritten the v4.5 improvements). Clarified: measurement registers returning 0xFFFF show "unknown", the derived sensors "unavailable".
 - Comment on "Save Settings": a stored stopped pump could still be started at the pump display or via Grundfos GO, just not by the heat pump.
 - Upgrade: replace the package, reload automations and scripts and run `modbus.reload` (no restart needed). The card is unchanged.
