@@ -167,6 +167,24 @@ state: >
 
 Intervals are conservatively set (15-300s). They can be adjusted as needed. Overly aggressive intervals (< 5s) may strain the Modbus communication.
 
+### Your Own Automations
+
+To control the pump from your own automations, best use the package's scripts. They take care of the pump's quirks (registers prefilled on start, waiting time after a control mode change) and get along with the slider synchronization:
+
+| Purpose | Script |
+|---|---|
+| Start / end HA control | `script.magna3_start_remote` / `script.magna3_to_local` |
+| Set setpoint | `script.magna3_set_setpoint_percent` (field `prozent`) or `script.magna3_set_setpoint_m` (field `meter`) |
+| Set control mode | `script.magna3_enable_proportional`, `…_constant_pressure`, `…_autoadapt`, `…_flowadapt` |
+| Store in the pump and end control | `script.magna3_to_local_copy` |
+
+As on the dashboard, setpoint and control mode only take effect under HA control.
+
+**Writing control registers 00101 to 00104 directly:** the slider synchronization sets the sliders about 2 s after each change of register 00338. If 00338 changes again at exactly that moment, it can write the old value back to 00104. In practice this only happens if your own automation re-reads 00338 every 2 s. So:
+- Don't align your own read cycles with that rhythm.
+- Read back 00104 before copying to the pump's EEPROM (CopyToLocal).
+- Don't write while any `script.magna3_*` is running.
+
 ## Documentation
 
 Based on the official Grundfos Modbus document:

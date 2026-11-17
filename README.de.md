@@ -166,6 +166,24 @@ state: >
 
 Die Intervalle sind konservativ gewählt (15-300s). Bei Bedarf können sie angepasst werden. Zu aggressive Intervalle (< 5s) können die Modbus-Kommunikation belasten.
 
+### Eigene Automationen
+
+Wer die Pumpe aus eigenen Automationen steuern will, nutzt am besten die Skripte des Pakets. Sie berücksichtigen die Eigenheiten der Pumpe (Vorbelegung der Register beim Start, Wartezeit nach einem Regelungsart-Wechsel) und vertragen sich mit der Slider-Synchronisation:
+
+| Zweck | Skript |
+|---|---|
+| HA-Steuerung starten / beenden | `script.magna3_start_remote` / `script.magna3_to_local` |
+| Sollwert setzen | `script.magna3_set_sollwert_prozent` (Feld `prozent`) oder `script.magna3_set_sollwert_meter` (Feld `meter`) |
+| Regelungsart setzen | `script.magna3_enable_proportional`, `…_constant_pressure`, `…_autoadapt`, `…_flowadapt` |
+| In der Pumpe speichern und beenden | `script.magna3_to_local_copy` |
+
+Wie im Dashboard wirken Sollwert und Regelungsart nur unter HA-Steuerung.
+
+**Wer die Steuerregister 00101 bis 00104 direkt schreibt:** Die Slider-Synchronisation setzt die Slider etwa 2 s nach jeder Änderung von Register 00338. Ändert sich 00338 genau in diesem Moment erneut, kann sie den alten Wert nach 00104 zurückschreiben. Das passiert praktisch nur, wenn eine eigene Automation 00338 im 2-s-Takt nachliest. Deshalb:
+- Eigene Lesezyklen nicht in diesen Takt legen.
+- 00104 vor einer Übernahme ins Pumpen-EEPROM (CopyToLocal) zurücklesen.
+- Nichts schreiben, solange ein `script.magna3_*` läuft.
+
 ## Dokumentation
 
 Basiert auf dem offiziellen Grundfos Modbus-Dokument:
