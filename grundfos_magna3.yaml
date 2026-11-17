@@ -1,7 +1,7 @@
 # ==============================================================================
 # GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration
 # ==============================================================================
-# Version:       v4.5.2 (2026-11-17)
+# Version:       v4.5.3 (2026-11-17)
 # CIM 500 Modbus TCP Configuration
 # Documentation: Grundfos 98367081 05.2025
 # Repo:          https://github.com/TRON4R/ha-grundfos-magna3-modbus
@@ -1241,11 +1241,12 @@ script:
           sequence:
             - delay:
                 milliseconds: 500
-      # Still not released after 20 s: do not write
+      # Still not released after 20 s: do not write (same condition as above)
       - condition: template
         value_template: >
           {{ not (is_state('script.magna3_set_control_mode', 'on')
-                  or state_attr('automation.magna3_refresh_sensor_config_on_control_mode_change', 'current') | int(0) > 0) }}
+                  or state_attr('automation.magna3_refresh_sensor_config_on_control_mode_change', 'current') | int(0) > 0
+                  or now() - states.sensor.magna3_control_mode_code.last_changed < timedelta(seconds=7)) }}
       - variables:
           s_max: "{{ states('sensor.magna3_feedback_sensor_max') | float(0) }}"
           r_min_pct: "{{ states('sensor.magna3_setpoint_range_min') | float(-1) }}"
@@ -1773,10 +1774,12 @@ automation:
           message: "Motor current above 5A: {{ states('sensor.magna3_motor_current') }} A"
   
   # Setpoint sync: Input Number -> Modbus. Sends UI values to the pump
-  # Writes only when the slider differs from the pump value. When the automation
-  # "Update Both Sliders from Pump Value" sets a slider to the pump value, no echo
-  # write back to the pump happens. Nothing is written while the pump value is
-  # unavailable either.
+  # Inputs by a user (context with user_id: dashboard, app, API) are always written, even
+  # if they equal the reported pump value: that value can still be stale for up to ~2 s
+  # after a write, and quickly setting a value back would otherwise be lost. Automatic
+  # slider changes (e.g. by "Update Both Sliders from Pump Value") are only written when
+  # they differ from the pump value, so no echo write happens. Nothing is written while
+  # the pump value is unavailable.
   # Every slider input first cancels a waiting meter job (even if it equals the pump value),
   # only then it checks whether anything has to be written. Otherwise an older meter job
   # would later overwrite the new input.
@@ -1794,7 +1797,8 @@ automation:
         value_template: >
           {% set pumpe = states('sensor.magna3_user_setpoint') | float(none) %}
           {{ pumpe is not none
-             and (trigger.to_state.state | float(0) - pumpe) | abs > 0.05 }}
+             and (trigger.to_state.context.user_id is not none
+                  or (trigger.to_state.state | float(0) - pumpe) | abs > 0.05) }}
       - action: script.magna3_set_setpoint_percent
 
   - id: magna3_sync_setpoint_meter
@@ -1811,7 +1815,8 @@ automation:
         value_template: >
           {% set pumpe = states('sensor.magna3_actual_setpoint_m') | float(none) %}
           {{ pumpe is not none
-             and (trigger.to_state.state | float(0) - pumpe) | abs > 0.005 }}
+             and (trigger.to_state.context.user_id is not none
+                  or (trigger.to_state.state | float(0) - pumpe) | abs > 0.005) }}
       - action: script.magna3_set_setpoint_m
 
   # After each HA start: wait 30s for Modbus data, then set both sliders to current pump values.

@@ -1,7 +1,7 @@
 # ==============================================================================
 # GRUNDFOS MAGNA3 - Home Assistant Modbus TCP Integration
 # ==============================================================================
-# Version:       v4.5.2 (2026-11-17)
+# Version:       v4.5.3 (2026-11-17)
 # CIM 500 Modbus TCP Konfiguration
 # Dokumentation: Grundfos 98367081 05.2025
 # Repo:          https://github.com/TRON4R/ha-grundfos-magna3-modbus
@@ -1241,11 +1241,12 @@ script:
           sequence:
             - delay:
                 milliseconds: 500
-      # Nach 20 s immer noch nicht freigegeben: nicht schreiben
+      # Nach 20 s immer noch nicht freigegeben: nicht schreiben (dieselbe Bedingung wie oben)
       - condition: template
         value_template: >
           {{ not (is_state('script.magna3_set_regelungsart', 'on')
-                  or state_attr('automation.magna3_sensor_konfiguration_bei_regelungsart_wechsel_nachlesen', 'current') | int(0) > 0) }}
+                  or state_attr('automation.magna3_sensor_konfiguration_bei_regelungsart_wechsel_nachlesen', 'current') | int(0) > 0
+                  or now() - states.sensor.magna3_regelungsart_code.last_changed < timedelta(seconds=7)) }}
       - variables:
           s_max: "{{ states('sensor.magna3_sensor_maximum') | float(0) }}"
           r_min_pct: "{{ states('sensor.magna3_sollwertbereich_min') | float(-1) }}"
@@ -1774,10 +1775,13 @@ automation:
           message: "Motorstrom über 5A: {{ states('sensor.magna3_motorstrom') }} A"
   
   # Sollwert-Sync: Input Number → Modbus. Dafür zuständig, die Werte aus dem Input-Bereich an die Pumpe zu melden
-  # Geschrieben wird nur, wenn der Slider vom Pumpenwert abweicht. Setzt die
-  # Automation "Beide Slider aus Pumpenwert aktualisieren" einen Slider auf den
-  # Pumpenwert, entsteht so kein Echo-Schreibvorgang zurueck zur Pumpe. Ist der
-  # Pumpenwert nicht verfuegbar, wird ebenfalls nicht geschrieben.
+  # Eingaben eines Nutzers (Kontext mit user_id: Dashboard, App, API) werden immer
+  # geschrieben, auch wenn sie dem gemeldeten Pumpenwert entsprechen: Der kann bis zu
+  # ~2 s nach einem Schreiben noch veraltet sein, und ein schnelles Zurueckstellen
+  # ginge sonst verloren. Automatische Slider-Aenderungen (z. B. durch "Beide Slider aus
+  # Pumpenwert aktualisieren") werden nur geschrieben, wenn sie vom Pumpenwert abweichen;
+  # so entsteht kein Echo-Schreibvorgang. Ist der Pumpenwert nicht verfuegbar, wird
+  # nicht geschrieben.
   # Jede Slider-Eingabe bricht zuerst einen noch wartenden Meter-Auftrag ab (auch wenn sie
   # dem Pumpenwert entspricht), erst danach wird geprueft, ob geschrieben werden muss.
   # Sonst schriebe ein aelterer Meter-Auftrag spaeter ueber die neue Eingabe.
@@ -1795,7 +1799,8 @@ automation:
         value_template: >
           {% set pumpe = states('sensor.magna3_sollwert_benutzer') | float(none) %}
           {{ pumpe is not none
-             and (trigger.to_state.state | float(0) - pumpe) | abs > 0.05 }}
+             and (trigger.to_state.context.user_id is not none
+                  or (trigger.to_state.state | float(0) - pumpe) | abs > 0.05) }}
       - action: script.magna3_set_sollwert_prozent
 
   - id: magna3_sync_setpoint_meter
@@ -1812,7 +1817,8 @@ automation:
         value_template: >
           {% set pumpe = states('sensor.magna3_sollwert_meter') | float(none) %}
           {{ pumpe is not none
-             and (trigger.to_state.state | float(0) - pumpe) | abs > 0.005 }}
+             and (trigger.to_state.context.user_id is not none
+                  or (trigger.to_state.state | float(0) - pumpe) | abs > 0.005) }}
       - action: script.magna3_set_sollwert_meter
 
   # Nach jedem HA-Start: 30 Sekunden warten (bis Modbus-Daten da sind), dann werden beide Slider/Boxen auf die aktuellen Pumpenwerte gesetzt.

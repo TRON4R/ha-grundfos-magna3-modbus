@@ -1,5 +1,17 @@
 # Changelog
 
+## v4.5.3 (2026-11-17)
+
+**Bug fix: quickly setting a setpoint back was lost.** Example: from 3.5 m to 4 m and right back to 3.5 m. The pump stayed at 4 m and the slider jumped to 4 m a few seconds later. Cause: a value was only written when the slider differed from the reported pump value, which can still be up to ~2 s old after a write (up to 15 s before v4.4.1). Now inputs by a user (dashboard, app, API) are always written. Only automatic slider changes, e.g. by "Update Both Sliders from Pump Value", are still compared with the pump value so no echo write happens. An input equal to the displayed value is therefore written again; with the meter slider the percent value may change by rounding (≤ 0.05 %).
+
+Other:
+- `magna3_set_setpoint_m`: the check after the wait now includes the 7 s condition as well (before only the script and the refresh automation).
+- v4.5.2 upgrade note made precise: "no `modbus.reload` needed" only applies when upgrading from v4.5.1.
+- Upgrade: replace the package, reload automations and scripts. Coming from v4.5 or older, also run `modbus.reload` (status register as `uint16` since v4.5.1). No restart needed, the card is unchanged.
+- Affects both YAMLs.
+
+**Note:** With the latest releases, the whole UX of the interface in Home Assistant **should be a lot smoother now**. Changes are reflected within a few seconds in all buttons and displays and don't need between 10 to 30 seconds anymore as they did before. Also potential errors creeping into the settings, which happened before, should now be a thing of the past. If you didn't like the previous look & feel, give this version another try, it's a huge improvement.
+
 ## v4.5.2 (2026-11-17)
 
 Both bugs only concern the first seconds after a control mode change; otherwise a meter input is still written right away.
@@ -10,7 +22,7 @@ Both bugs only concern the first seconds after a control mode change; otherwise 
 
 Other:
 - Comments and v4.5.1 changelog made precise: the re-read in Reset Alarm reduces the risk but is not an atomic check; `queued` only serializes the preparation, not the whole Start/Stop/Save sequences.
-- Upgrade: replace the package, reload automations and scripts (no restart, no `modbus.reload` needed). The card is unchanged.
+- Upgrade: replace the package, reload automations and scripts (no restart needed). From v4.5.1 no `modbus.reload` is needed; coming from v4.5 or older you need it for the `uint16` fix from v4.5.1. The card is unchanged.
 - Affects both YAMLs.
 
 **Note:** With the latest releases, the whole UX of the interface in Home Assistant **should be a lot smoother now**. Changes are reflected within a few seconds in all buttons and displays and don't need between 10 to 30 seconds anymore as they did before. Also potential errors creeping into the settings, which happened before, should now be a thing of the past. If you didn't like the previous look & feel, give this version another try, it's a huge improvement.

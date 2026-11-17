@@ -1,5 +1,17 @@
 # Changelog
 
+## v4.5.3 (2026-11-17)
+
+**Bugfix: Schnelles Zurückstellen eines Sollwerts ging verloren.** Beispiel: von 3,5 m auf 4 m und gleich wieder auf 3,5 m. Die Pumpe blieb auf 4 m, und der Slider sprang nach ein paar Sekunden auf 4 m. Ursache: Geschrieben wurde nur, wenn der Slider vom gemeldeten Pumpenwert abweicht; der ist nach einem Schreiben aber noch bis zu ~2 s alt (vor v4.4.1 bis zu 15 s). Jetzt werden Eingaben eines Nutzers (Dashboard, App, API) immer geschrieben. Nur automatische Slider-Änderungen, etwa durch „Beide Slider aus Pumpenwert aktualisieren“, werden weiter mit dem Pumpenwert verglichen, damit kein Echo-Schreibvorgang entsteht. Eine Eingabe, die dem angezeigten Wert entspricht, wird dadurch erneut geschrieben; beim Meter-Slider kann sich der Prozentwert dabei um Rundungsreste (≤ 0,05 %) ändern.
+
+Sonstiges:
+- `magna3_set_sollwert_meter`: Die Prüfung nach der Wartezeit enthält jetzt auch die 7-s-Bedingung (vorher nur Skript und Nachlese-Automation).
+- Upgrade-Hinweis von v4.5.2 präzisiert: „kein `modbus.reload` nötig“ gilt nur beim Upgrade von v4.5.1.
+- Upgrade: Paket ersetzen, Automationen und Skripte neu laden. Wer von v4.5 oder älter kommt, zusätzlich `modbus.reload` (Statusregister als `uint16` seit v4.5.1). Kein Neustart nötig, die Karte ist unverändert.
+- Betrifft beide YAMLs.
+
+**Hinweis:** Mit den letzten Releases sollte sich die ganze Bedienung in Home Assistant **deutlich flüssiger anfühlen**. Änderungen erscheinen innerhalb weniger Sekunden in allen Buttons und Anzeigen und brauchen nicht mehr 10 bis 30 Sekunden wie zuvor. Auch die Fehler, die sich früher in die Einstellungen einschleichen konnten, sollten der Vergangenheit angehören. Wem das bisherige Look & Feel nicht gefallen hat, sollte dieser Version noch eine Chance geben – es ist eine deutliche Verbesserung.
+
 ## v4.5.2 (2026-11-17)
 
 Beide Fehler betreffen nur die ersten Sekunden nach einem Wechsel der Regelungsart; sonst schreibt die Meter-Eingabe wie bisher sofort.
@@ -10,7 +22,7 @@ Beide Fehler betreffen nur die ersten Sekunden nach einem Wechsel der Regelungsa
 
 Sonstiges:
 - Kommentare und CHANGELOG v4.5.1 präzisiert: Das Nachlesen beim Alarm-Reset verringert das Risiko, ist aber keine atomare Prüfung; `queued` serialisiert nur die Vorbereitung, nicht die ganzen Start-/Stop-/Sichern-Abläufe.
-- Upgrade: Paket ersetzen, Automationen und Skripte neu laden (kein Neustart, kein `modbus.reload` nötig). Die Karte ist unverändert.
+- Upgrade: Paket ersetzen, Automationen und Skripte neu laden (kein Neustart nötig). Von v4.5.1 aus kein `modbus.reload` nötig; wer von v4.5 oder älter kommt, braucht ihn für den `uint16`-Fix aus v4.5.1. Die Karte ist unverändert.
 - Betrifft beide YAMLs.
 
 **Hinweis:** Mit den letzten Releases sollte sich die ganze Bedienung in Home Assistant **deutlich flüssiger anfühlen**. Änderungen erscheinen innerhalb weniger Sekunden in allen Buttons und Anzeigen und brauchen nicht mehr 10 bis 30 Sekunden wie zuvor. Auch die Fehler, die sich früher in die Einstellungen einschleichen konnten, sollten der Vergangenheit angehören. Wem das bisherige Look & Feel nicht gefallen hat, sollte dieser Version noch eine Chance geben – es ist eine deutliche Verbesserung.
